@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookstore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green-deep: #1a3d2b;
+            --green-mid: #2d6a4f;
+            --green-accent: #52b788;
+            --green-light: #b7e4c7;
+            --green-pale: #d8f3dc;
+            --cream: #f8f5ef;
+            --gold: #c9a84c;
+            --text-dark: #1a2e1e;
+            --text-mid: #3a5a40;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--cream);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        header {
+            background: var(--green-deep);
+            padding: 1.2rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 3px solid var(--gold);
+        }
+
+        .logo {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .logo-main {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--cream);
+            letter-spacing: 2px;
+        }
+
+        .logo-sub {
+            font-size: 0.65rem;
+            letter-spacing: 6px;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .login-btn {
+            background: transparent;
+            color: var(--cream);
+            border: 1.5px solid var(--green-accent);
+            padding: 0.6rem 1.5rem;
+            border-radius: 3px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background: var(--green-accent);
+            color: var(--green-deep);
+        }
+
+        .cart-container {
+            position: relative;
+            cursor: pointer;
+        }
+
+        #carrito {
+            width: 32px;
+            height: 32px;
+            filter: invert(1);
+            transition: transform 0.3s ease;
+        }
+
+        .cart-container:hover #carrito { transform: scale(1.1); }
+
+        .cart-counter {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--gold);
+            color: var(--green-deep);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        /* HERO */
+        .hero-section {
+            background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 100%);
+            padding: 5rem 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '📚';
+            position: absolute;
+            font-size: 20rem;
+            opacity: 0.04;
+            top: -3rem;
+            right: -2rem;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--cream);
+            margin-bottom: 1rem;
+            animation: fadeDown 0.8s ease-out;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            color: var(--green-light);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: fadeUp 0.8s ease-out 0.2s both;
+        }
+
+        .hero-line {
+            width: 60px;
+            height: 3px;
+            background: var(--gold);
+            margin: 1.5rem auto;
+            animation: expandLine 0.8s ease-out 0.4s both;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes expandLine {
+            from { width: 0; opacity: 0; }
+            to   { width: 60px; opacity: 1; }
+        }
+
+        /* MAIN */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .section-label {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--green-deep);
+            margin-bottom: 0.3rem;
+        }
+
+        .section-divider {
+            width: 50px;
+            height: 3px;
+            background: var(--gold);
+            margin-bottom: 2.5rem;
+        }
+
+        /* BOOK GRID */
+        .book-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .book-card {
+            background: white;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(26,61,43,0.1);
+            transition: all 0.35s ease;
+            border: 1px solid var(--green-pale);
+        }
+
+        .book-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 40px rgba(26,61,43,0.2);
+        }
+
+        .book-image-wrap {
+            position: relative;
+            overflow: hidden;
+            height: 220px;
+            background: var(--green-pale);
+        }
+
+        .book-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .book-card:hover .book-image { transform: scale(1.06); }
+
+        .book-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: var(--gold);
+            color: var(--green-deep);
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 2px;
+        }
+
+        .book-info {
+            padding: 1.5rem;
+        }
+
+        .book-genre {
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--green-accent);
+            margin-bottom: 0.4rem;
+        }
+
+        .book-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            color: var(--green-deep);
+            margin-bottom: 0.3rem;
+        }
+
+        .book-author {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 1rem;
+        }
+
+        .book-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .book-price {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            color: var(--green-mid);
+            font-weight: 700;
+        }
+
+        .add-to-cart {
+            background: var(--green-deep);
+            color: var(--cream);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-to-cart:hover {
+            background: var(--green-accent);
+            color: var(--green-deep);
+        }
+
+        /* FEATURES */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature {
+            background: var(--green-deep);
+            padding: 2rem;
+            border-radius: 4px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            border-bottom: 3px solid var(--gold);
+        }
+
+        .feature:hover { transform: translateY(-5px); }
+
+        .feature-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+
+        .feature-title {
+            font-family: 'Playfair Display', serif;
+            color: var(--cream);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature p {
+            color: var(--green-light);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* CART MODAL */
+        .cart-modal {
+            display: none;
+            position: fixed;
+            top: 0; right: 0;
+            width: 380px;
+            height: 100vh;
+            background: white;
+            box-shadow: -10px 0 40px rgba(0,0,0,0.15);
+            z-index: 999;
+            flex-direction: column;
+            animation: slideIn 0.3s ease;
+        }
+
+        .cart-modal.open { display: flex; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to   { transform: translateX(0); }
+        }
+
+        .cart-header {
+            background: var(--green-deep);
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-header h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--cream);
+        }
+
+        .cart-close {
+            background: none;
+            border: none;
+            color: var(--cream);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .cart-items { flex: 1; overflow-y: auto; padding: 1.5rem; }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--green-pale);
+        }
+
+        .cart-item-name { font-size: 0.9rem; color: var(--green-deep); font-weight: 600; }
+        .cart-item-price { color: var(--green-mid); font-weight: 700; }
+
+        .cart-total {
+            padding: 1.5rem;
+            border-top: 2px solid var(--green-pale);
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--green-deep);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .checkout-btn {
+            margin: 0 1.5rem 1.5rem;
+            background: var(--green-mid);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 3px;
+            font-size: 1rem;
+            cursor: pointer;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: background 0.3s;
+        }
+
+        .checkout-btn:hover { background: var(--green-deep); }
+
+        /* FOOTER */
+        footer {
+            background: var(--green-deep);
+            color: var(--green-light);
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            border-top: 3px solid var(--gold);
+        }
+
+        footer span { color: var(--gold); }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--green-mid);
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 3px;
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+            z-index: 9999;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        @media (max-width: 768px) {
+            header { padding: 1rem 1.5rem; }
+            .logo-main { font-size: 1.5rem; }
+            .hero-title { font-size: 2.5rem; }
+            .cart-modal { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <span class="logo-main">Bookstore</span>
+            <span class="logo-sub">Tu librería de confianza</span>
+        </div>
+        <div class="header-right">
+            <button class="login-btn" onclick="showLogin()">Ingresar</button>
+            <div class="cart-container" onclick="toggleCart()">
+                <img src="https://cdn-icons-png.flaticon.com/512/5412/5412512.png" id="carrito">
+                <span class="cart-counter" id="cart-count">0</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="hero-section">
+        <h1 class="hero-title">Bienvenidos</h1>
+        <div class="hero-line"></div>
+        <p class="hero-subtitle">Descubrí tu próxima historia</p>
+    </div>
+
+    <main>
+        <h2 class="section-label">Novedades</h2>
+        <div class="section-divider"></div>
+
+        <div class="book-showcase">
+
+            <div class="book-card">
+                <div class="book-image-wrap">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSRLoOoI0K8Xq-BKcwFq-mK4GCcDY4w8W54A&s" alt="Libro 1" class="book-image">
+                    <span class="book-badge">Destacado</span>
+                </div>
+                <div class="book-info">
+                    <p class="book-genre"></p>
+                    <h3 class="book-name">Romanticismo</h3>
+                    <div class="book-footer">
+                       
+                    </div>
+                </div>
+            </div>
+
+            <div class="book-card">
+                <div class="book-image-wrap">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWx-rnxpTtxMdg2AtIMLEQBBAJtdLpepvEhg&s" alt="Libro 2" class="book-image">
+                </div>
+                <div class="book-info">
+                    <h2 class="book-name">Ficcion</h2>
+                   
+                    <div class="book-footer">
+                
+                        
+                    </div>
+                </div>
+            </div>
+
+            <div class="book-card">
+                <div class="book-image-wrap">
+                    <img src="https://www.bloomberglinea.com/resizer/v2/AFIIUEY52BAS5OBKCT4LHJV63Q.jpg?auth=3dbb65a477b4e889d4b42083ac073a2127b09d427f4ccdbe723419839da2addd&width=800&height=450&quality=80&smart=true" alt="Libro 3" class="book-image">
+                  
+                </div>
+                <div class="book-info">
+    
+                    <h3 class="book-name">Terror</h3>
+              
+                    <div class="book-footer">
+                        
+                        
+                    </div>
+                </div>
+            </div>
+
+            <div class="book-card">
+                <div class="book-image-wrap">
+                    <img src="https://thumbs.dreamstime.com/b/m%C3%A1scaras-del-teatro-de-la-comedia-y-de-la-tragedia-21958013.jpg" alt="Libro 4" class="book-image">
+                </div>
+                <div class="book-info">
+            
+                    <h3 class="book-name">Comedia</h3>
+
+                    <div class="book-footer">
+                        
+                        
+                    </div>
+                </div>
+            </div>
+
+            <div class="book-card">
+                <div class="book-image-wrap">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs8OSuskP5BtLo0KGXt0JuCU1tibDCpdxvXg&s" alt="Libro 5" class="book-image">
+                </div>
+                <div class="book-info">
+                   
+                    <h3 class="book-name">Misterio</h3>
+           
+                    <div class="book-footer">
+                        
+                        
+                    </div>
+                </div>
+            </div>
+
+            <div class="book-card">
+                <div class="book-image-wrap">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZnFxTr-pSLQ-EHoK1tTP8f5evl4RbJeaTzA&s" alt="Libro 6" class="book-image">
+                  
+                </div>
+                <div class="book-info">
+            
+                    <h3 class="book-name">Poesia</h3>
+    
+                    <div class="book-footer">
+                       
+                        
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <h2 class="section-label">Por qué elegirnos</h2>
+        <div class="section-divider"></div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">📖</div>
+                <h3 class="feature-title">Gran Variedad</h3>
+                <p>Miles de títulos de todos los géneros para cada lector</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🚚</div>
+                <h3 class="feature-title">Envío Rápido</h3>
+                <p>Recibí tus libros en la puerta de tu casa en tiempo récord</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">⭐</div>
+                <h3 class="feature-title">Calidad Garantizada</h3>
+                <p>Libros seleccionados con el más alto estándar editorial</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- CART MODAL -->
+    <div class="cart-modal" id="cartModal">
+        <div class="cart-header">
+            <h2>Tu Carrito</h2>
+            <button class="cart-close" onclick="toggleCart()">✕</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <p style="color:#aaa; text-align:center; margin-top:2rem">El carrito está vacío</p>
+        </div>
+        <div class="cart-total">
+            <span>Total</span>
+            <span id="cartTotal">$0.00</span>
+        </div>
+        <button class="checkout-btn">Finalizar Compra</button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <footer>
+        <p><span>Bookstore</span> &mdash; Rocio Monzon · Nicole Roglich · Denise Roglich</p>
+    </footer>
+
+    <script>
+        let cart = [];
+        let total = 0;
+
+        function addToCart(name, price) {
+            cart.push({ name, price });
+            total += price;
+            document.getElementById('cart-count').textContent = cart.length;
+            renderCart();
+            showToast(`"${name}" agregado al carrito`);
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cartItems');
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="color:#aaa;text-align:center;margin-top:2rem">El carrito está vacío</p>';
+            } else {
+                container.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <span class="cart-item-name">${item.name}</span>
+                        <span class="cart-item-price">$${item.price.toFixed(2)}</span>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('cartTotal').textContent = `$${total.toFixed(2)}`;
+        }
+
+        function toggleCart() {
+            document.getElementById('cartModal').classList.toggle('open');
+        }
+
+        function showLogin() {
+            alert('Funcionalidad de login próximamente');
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+    </script>
+
+</body>
+</html>
