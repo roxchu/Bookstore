@@ -5,9 +5,12 @@ $apellido = trim($_POST['apellido'] ?? '');
 $user     = trim($_POST['user'] ?? '');
 $pass     = $_POST['pass'] ?? '';
 $rpass    = $_POST['rpass'] ?? '';
+$email    = trim($_POST['email'] ?? '');
+$telefono = trim($_POST['telefono'] ?? '');
+$direccion = trim($_POST['direccion'] ?? '');
 
 // Validación mínima de campos
-if ($nombre === '' || $apellido === '' || $user === '' || $pass === '' || $rpass === '') {
+if ($nombre === '' || $apellido === '' || $user === '' || $pass === '' || $rpass === '' || $email === '' || $telefono === '' || $direccion === '') {
     echo "Por favor, complete todos los campos";
     exit;
 }
@@ -19,15 +22,16 @@ if ($pass !== $rpass) {
 
 require_once 'conexion.php';
 
-// Hashear contraseña (para producción usar password_hash())
-$passHash = md5($pass);
+// Hashear contraseña usando password_hash()
+$passHash = password_hash($pass, PASSWORD_DEFAULT);
 
 // Unir nombre y apellido para la columna existente
 $nombre_apellido = $nombre . ' ' . $apellido;
 
 // Nota: la base de datos importada tiene la tabla `registros`.
 // Ajustamos la consulta para coincidir con esa estructura.
-$stmt = $mysqli->prepare("INSERT INTO registros (realname, username, pass) VALUES (?, ?, ?)");
+$rol_id = 3;  // Valor por defecto para Cliente
+$stmt = $mysqli->prepare("INSERT INTO usuarios (realname, username, pass, email, telefono, direccion, rol_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
 if (!$stmt) {
     // Mostrar el error real de MySQL para ayudar en el debugging.
     http_response_code(500);
@@ -35,7 +39,7 @@ if (!$stmt) {
     exit;
 }
 
-$stmt->bind_param("sss", $nombre_apellido, $user, $passHash);
+$stmt->bind_param("ssssssi", $nombre_apellido, $user, $passHash, $email, $telefono, $direccion, $rol_id);
 
 if ($stmt->execute()) {
     echo "Usuario registrado con éxito";

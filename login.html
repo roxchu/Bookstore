@@ -316,12 +316,12 @@
         <!-- LOGIN -->
         <div id="login-form" class="form-section active">
             <div class="form-group">
-                <label for="email_login">Email</label>
-                <input type="email" id="email_login" autocomplete="email" placeholder="tu@email.com">
+                <label for="username_login">Usuario</label>
+                <input type="text" id="username_login" autocomplete="username" placeholder="tu_usuario">
             </div>
             <div class="form-group">
-                <label for="telefono_login">Teléfono</label>
-                <input type="tel" id="telefono_login" autocomplete="tel" placeholder="+54 11 0000-0000">
+                <label for="password_login">Contraseña</label>
+                <input type="password" id="password_login" autocomplete="current-password" placeholder="••••••••">
             </div>
             <button class="submit-btn" onclick="handleLogin()">Iniciar Sesión</button>
         </div>
@@ -398,14 +398,32 @@
         }
 
         function handleLogin() {
-            const email = document.getElementById('email_login').value.trim();
-            const telefono = document.getElementById('telefono_login').value.trim();
-            if (!email || !telefono) {
+            const username = document.getElementById('username_login').value.trim();
+            const password = document.getElementById('password_login').value.trim();
+            if (!username || !password) {
                 showError('Por favor completa todos los campos.');
                 return;
             }
-            
-            showSuccess('¡Sesión iniciada correctamente! Redirigiendo...');
+
+            // Envía los datos al servidor
+            fetch('login.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    username: username,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showSuccess('¡Sesión iniciada correctamente! Redirigiendo...');
+                    setTimeout(() => window.location.href = data.redirect, 1000);  // Redirige después de 1s
+                } else {
+                    showError(data.message);
+                }
+            })
+            .catch(error => showError('Error de conexión: ' + error.message));
         }
 
         async function handleRegister() {
