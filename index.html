@@ -6,6 +6,14 @@
     <title>Bookstore</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        a.book-card {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
@@ -35,95 +43,66 @@
 
         <div class="book-showcase">
 
-            <div class="book-card">
+            <!-- Romanticismo → id_genero=3 -->
+            <a href="libros.php?genero=3" class="book-card">
                 <div class="book-image-wrap">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSRLoOoI0K8Xq-BKcwFq-mK4GCcDY4w8W54A&s" alt="Libro 1" class="book-image">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSRLoOoI0K8Xq-BKcwFq-mK4GCcDY4w8W54A&s" alt="Romanticismo" class="book-image">
                     <span class="book-badge">Destacado</span>
                 </div>
                 <div class="book-info">
-                    <p class="book-genre"></p>
                     <h3 class="book-name">Romanticismo</h3>
-                    <div class="book-footer">
-                       
-                    </div>
                 </div>
-            </div>
+            </a>
 
-            <div class="book-card">
+            <!-- Ficcion → id_genero=1 -->
+            <a href="libros.php?genero=1" class="book-card">
                 <div class="book-image-wrap">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWx-rnxpTtxMdg2AtIMLEQBBAJtdLpepvEhg&s" alt="Libro 2" class="book-image">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWx-rnxpTtxMdg2AtIMLEQBBAJtdLpepvEhg&s" alt="Ficcion" class="book-image">
                 </div>
                 <div class="book-info">
-                    <h2 class="book-name">Ficcion</h2>
-                   
-                    <div class="book-footer">
-                
-                        
-                    </div>
+                    <h3 class="book-name">Ficcion</h3>
                 </div>
-            </div>
+            </a>
 
-            <div class="book-card">
+            <!-- Terror → id_genero=2 -->
+            <a href="libros.php?genero=2" class="book-card">
                 <div class="book-image-wrap">
-                    <img src="https://www.bloomberglinea.com/resizer/v2/AFIIUEY52BAS5OBKCT4LHJV63Q.jpg?auth=3dbb65a477b4e889d4b42083ac073a2127b09d427f4ccdbe723419839da2addd&width=800&height=450&quality=80&smart=true" alt="Libro 3" class="book-image">
-                  
+                    <img src="https://www.bloomberglinea.com/resizer/v2/AFIIUEY52BAS5OBKCT4LHJV63Q.jpg?auth=3dbb65a477b4e889d4b42083ac073a2127b09d427f4ccdbe723419839da2addd&width=800&height=450&quality=80&smart=true" alt="Terror" class="book-image">
                 </div>
                 <div class="book-info">
-    
                     <h3 class="book-name">Terror</h3>
-              
-                    <div class="book-footer">
-                        
-                        
-                    </div>
                 </div>
-            </div>
+            </a>
 
-            <div class="book-card">
+            <!-- Comedia → id_genero=4 -->
+            <a href="libros.php?genero=4" class="book-card">
                 <div class="book-image-wrap">
-                    <img src="https://thumbs.dreamstime.com/b/m%C3%A1scaras-del-teatro-de-la-comedia-y-de-la-tragedia-21958013.jpg" alt="Libro 4" class="book-image">
+                    <img src="https://thumbs.dreamstime.com/b/m%C3%A1scaras-del-teatro-de-la-comedia-y-de-la-tragedia-21958013.jpg" alt="Comedia" class="book-image">
                 </div>
                 <div class="book-info">
-            
                     <h3 class="book-name">Comedia</h3>
-
-                    <div class="book-footer">
-                        
-                        
-                    </div>
                 </div>
-            </div>
+            </a>
 
-            <div class="book-card">
+            <!-- Misterio → id_genero=5 -->
+            <a href="libros.php?genero=5" class="book-card">
                 <div class="book-image-wrap">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs8OSuskP5BtLo0KGXt0JuCU1tibDCpdxvXg&s" alt="Libro 5" class="book-image">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs8OSuskP5BtLo0KGXt0JuCU1tibDCpdxvXg&s" alt="Misterio" class="book-image">
                 </div>
                 <div class="book-info">
-                   
                     <h3 class="book-name">Misterio</h3>
-           
-                    <div class="book-footer">
-                        
-                        
-                    </div>
                 </div>
-            </div>
+            </a>
 
-            <div class="book-card">
+            <!-- Poesia → id_genero=6 -->
+            <a href="libros.php?genero=6" class="book-card">
                 <div class="book-image-wrap">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZnFxTr-pSLQ-EHoK1tTP8f5evl4RbJeaTzA&s" alt="Libro 6" class="book-image">
-                  
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZnFxTr-pSLQ-EHoK1tTP8f5evl4RbJeaTzA&s" alt="Poesia" class="book-image">
                 </div>
                 <div class="book-info">
-            
                     <h3 class="book-name">Poesia</h3>
-    
-                    <div class="book-footer">
-                       
-                        
-                    </div>
                 </div>
-            </div>
+            </a>
 
         </div>
 
