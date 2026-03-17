@@ -23,12 +23,18 @@
             <span class="logo-sub">Tu librería de confianza</span>
         </div>
         <div class="header-right">
-            <button class="login-btn" onclick="showLogin()">Ingresar</button>
-            <div class="cart-container" onclick="toggleCart()">
-                <img src="https://cdn-icons-png.flaticon.com/512/5412/5412512.png" id="carrito">
-                <span class="cart-counter" id="cart-count">0</span>
-            </div>
-        </div>
+    <?php if(isset($_SESSION['username'])): ?>
+        <span style="color: var(--cream); font-size: 0.9rem;">Hola, <?= htmlspecialchars($_SESSION['username']) ?></span>
+        <a href="logout.php" class="login-btn" style="margin-left: 10px;">Salir</a>
+    <?php else: ?>
+        <a href="login.html" class="login-btn">Ingresar</a>
+    <?php endif; ?>
+
+    <div class="cart-container" onclick="toggleCart()">
+        <img src="https://cdn-icons-png.flaticon.com/512/5412/5412512.png" id="carrito">
+        <span class="cart-counter" id="cart-count">0</span>
+    </div>
+</div>
     </header>
 
     <div class="hero-section">

@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once 'conexion.php';
 
 $user = trim($_POST['username'] ?? '');
@@ -28,7 +29,7 @@ if ($result->num_rows === 1) {
                 $redirect = 'panel_empleado.html';
                 break;
             case 3: // Cliente      
-                $redirect = 'index.html';
+                $redirect = 'index.php';
                 break;
             default:
                 echo json_encode(['status' => 'error', 'message' => 'Rol no reconocido']);

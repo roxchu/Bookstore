@@ -47,6 +47,87 @@ $stmt->close();
     <title><?= htmlspecialchars($nombre_genero) ?> — Bookstore</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
+        /* Contenedor para centrar */
+.search-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    max-width: 500px; /* Ancho máximo para que no se estire demasiado */
+    margin: 0 2rem;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1); /* Fondo sutil */
+    border: 1.5px solid var(--green-accent);
+    border-radius: 50px;
+    padding: 4px 6px 4px 18px;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+/* Efecto al hacer clic para escribir */
+.search-box:focus-within {
+    background: white;
+    border-color: var(--gold);
+    box-shadow: 0 0 12px rgba(201, 168, 76, 0.3);
+}
+
+.search-box input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--cream);
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    width: 100%;
+    padding: 8px 0;
+}
+
+/* Cambia el color del texto cuando el fondo es blanco (focus) */
+.search-box:focus-within input {
+    color: var(--text-dark);
+}
+
+/* Estilo del ícono/botón */
+.search-box button {
+    background: var(--gold);
+    color: var(--green-deep);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s;
+}
+
+.search-box button:hover {
+    background: var(--green-accent);
+    transform: scale(1.05);
+}
+
+/* Placeholder (el texto gris de fondo) */
+.search-box input::placeholder {
+    color: var(--green-light);
+    opacity: 0.7;
+}
+
+.search-box:focus-within input::placeholder {
+    color: #999;
+}
+
+/* Ajuste para celulares */
+@media (max-width: 768px) {
+    .search-container {
+        order: 3; /* La manda abajo en móviles si no hay espacio */
+        margin: 10px 0 0 0;
+        max-width: 100%;
+    }
+}
         :root {
             --green-deep:   #1a3d2b;
             --green-mid:    #2d6a4f;
@@ -316,17 +397,35 @@ $stmt->close();
 <body>
 
 <header>
+    <form action="Libros.php" method="GET" class="search-container">
+    <?php if(isset($id_genero) && $id_genero > 0): ?>
+        <input type="hidden" name="genero" value="<?= $id_genero ?>">
+    <?php endif; ?>
+    
+    <div class="search-box">
+        <input type="text" name="q" placeholder="Buscar por título o autor..." value="<?= isset($_GET['q']) ? htmlspecialchars($_GET['q']) : '' ?>">
+        <button type="submit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </button>
+    </div>
+</form>
     <a href="index.html" class="logo">
         <span class="logo-main">Bookstore</span>
         <span class="logo-sub">Tu librería de confianza</span>
     </a>
     <div class="header-right">
-        <a href="login.php" class="login-btn">Ingresar</a>
-        <div class="cart-container" onclick="toggleCart()">
-            <img src="https://cdn-icons-png.flaticon.com/512/5412/5412512.png" id="carrito">
-            <span class="cart-counter" id="cart-count">0</span>
-        </div>
+    <?php if(isset($_SESSION['username'])): ?>
+        <span style="color: var(--cream); font-size: 0.9rem;">Hola, <?= htmlspecialchars($_SESSION['username']) ?></span>
+        <a href="logout.php" class="login-btn" style="margin-left: 10px;">Salir</a>
+    <?php else: ?>
+        <a href="login.html" class="login-btn">Ingresar</a>
+    <?php endif; ?>
+
+    <div class="cart-container" onclick="toggleCart()">
+        <img src="https://cdn-icons-png.flaticon.com/512/5412/5412512.png" id="carrito">
+        <span class="cart-counter" id="cart-count">0</span>
     </div>
+</div>
 </header>
 
 <?php
@@ -335,7 +434,7 @@ $icono_actual = isset($iconos[$id_genero]) ? $iconos[$id_genero] : '📚';
 ?>
 <div class="genero-hero" data-icon="<?= $icono_actual ?>">
     <p class="hero-breadcrumb">
-        <a href="index.html">Inicio</a> &nbsp;/&nbsp; <?= htmlspecialchars($nombre_genero) ?>
+        <a href="index.php">Inicio</a> &nbsp;/&nbsp; <?= htmlspecialchars($nombre_genero) ?>
     </p>
     <h1 class="hero-title"><?= $icono_actual ?> <?= htmlspecialchars($nombre_genero) ?></h1>
     <div class="hero-line"></div>
@@ -348,7 +447,7 @@ $icono_actual = isset($iconos[$id_genero]) ? $iconos[$id_genero] : '📚';
         <h3 class="sidebar-title">Géneros</h3>
         <ul class="genero-list">
             <li>
-                <a href="index.html">🏠 <span>Inicio</span></a>
+                <a href="index.php">🏠 <span>Inicio</span></a>
             </li>
             <?php
             $generos->data_seek(0);
@@ -421,16 +520,12 @@ $icono_actual = isset($iconos[$id_genero]) ? $iconos[$id_genero] : '📚';
 
 function addToCart(name, price) {
     if (!usuarioLogueado) {
-        // Esta es la alerta que verá el usuario
-        alert("¡Hola! Para sumar libros a tu carrito primero debes iniciar sesión o registrarte.");
-        
-        // Si quieres que después de la alerta lo mande directo al login:
-        // window.location.href = "login.php";
-        
-        return; // Esto evita que el libro se sume al carrito
+        alert("Debes iniciar sesión para poder comprar.");
+        // Opcional: redirigir al login
+        // window.location.href = 'login.html';
+        return;
     }
 
-    // Si está logueado, el código sigue normal...
     cart.push({ name, price: parseFloat(price) });
     total += parseFloat(price);
     document.getElementById('cart-count').textContent = cart.length;
