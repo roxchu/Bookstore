@@ -3,212 +3,476 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bookstore</title>
+    <title>Ingresar — Bookstore</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --green-deep:   #1a3d2b;
+            --green-mid:    #2d6a4f;
+            --green-accent: #52b788;
+            --green-light:  #b7e4c7;
+            --green-pale:   #d8f3dc;
+            --cream:        #f8f5ef;
+            --gold:         #c9a84c;
+            --text-dark:    #1a2e1e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            background: var(--green-deep);
+        }
+
+        .left-panel {
+            flex: 1;
+            background: linear-gradient(160deg, var(--green-deep) 0%, var(--green-mid) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 4rem 5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: '📚';
+            position: absolute;
+            font-size: 28rem;
+            bottom: -4rem;
+            right: -4rem;
+            opacity: 0.05;
+            pointer-events: none;
+        }
+
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            top: -80px;
+            left: -80px;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            border: 2px solid rgba(201,168,76,0.15);
+        }
+
+        .brand { margin-bottom: 3rem; animation: fadeLeft 0.7s ease-out both; }
+
+        .brand-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--cream);
+            letter-spacing: 3px;
+            line-height: 1;
+        }
+
+        .brand-tag {
+            display: block;
+            font-size: 0.65rem;
+            letter-spacing: 7px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-top: 6px;
+        }
+
+        .gold-line {
+            width: 60px;
+            height: 3px;
+            background: var(--gold);
+            margin: 2rem 0;
+            animation: expandLine 0.8s ease-out 0.3s both;
+        }
+
+        .left-copy { animation: fadeLeft 0.7s ease-out 0.4s both; }
+
+        .left-copy h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--cream);
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 1rem;
+        }
+
+        .left-copy p {
+            color: var(--green-light);
+            font-size: 1rem;
+            line-height: 1.7;
+            max-width: 320px;
+        }
+
+        .right-panel {
+            width: 480px;
+            background: var(--cream);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 4rem 3.5rem;
+            animation: fadeRight 0.7s ease-out both;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--green-mid);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-decoration: none;
+            margin-bottom: 2.5rem;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover { color: var(--green-deep); }
+
+        .panel-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--green-deep);
+            margin-bottom: 0.3rem;
+        }
+
+        .panel-subtitle {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 2rem;
+        }
+
+        .form-tabs {
+            display: flex;
+            background: var(--green-pale);
+            border-radius: 4px;
+            padding: 4px;
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.65rem;
+            border: none;
+            background: transparent;
+            color: var(--green-mid);
+            cursor: pointer;
+            border-radius: 3px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--green-deep);
+            color: var(--cream);
+        }
+
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 3px;
+            margin-bottom: 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-left: 4px solid;
+            display: none;
+        }
+
+        .alert.show { display: block; }
+        .alert-error { background: #fff0f0; color: #c0392b; border-color: #c0392b; }
+        .alert-success { background: #f0fff4; color: var(--green-mid); border-color: var(--green-accent); }
+
+        .form-section { display: none; }
+        .form-section.active { display: block; }
+
+        .form-group { margin-bottom: 1.2rem; }
+
+        label {
+            display: block;
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--green-mid);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"] {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1.5px solid var(--green-pale);
+            border-radius: 3px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            background: white;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        input:focus {
+            border-color: var(--green-accent);
+            box-shadow: 0 0 0 3px rgba(82,183,136,0.15);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: var(--green-deep);
+            color: var(--cream);
+            border: none;
+            border-radius: 3px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: var(--green-mid);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(26,61,43,0.25);
+        }
+
+        .submit-btn:active { transform: translateY(0); }
+
+        .form-footer {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--green-pale);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-footer span {
+            width: 20px;
+            height: 2px;
+            background: var(--gold);
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .form-footer p { font-size: 0.75rem; color: #aaa; letter-spacing: 1px; }
+
+        @keyframes fadeLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes expandLine {
+            from { width: 0; opacity: 0; }
+            to   { width: 60px; opacity: 1; }
+        }
+
+        @media (max-width: 900px) {
+            .left-panel { display: none; }
+            .right-panel { width: 100%; padding: 3rem 2rem; }
+        }
+    </style>
 </head>
-
 <body>
-    <header>
-        <div class="logo">
-            <span class="logo-main">Bookstore</span>
-            <span class="logo-sub">Tu librería de confianza</span>
-        </div>
-        <div class="header-right">
-            <button class="login-btn" onclick="window.location.href='login.html'">Ingresar</button>
-            <div class="cart-container" onclick="toggleCart()">
-                <img src="https://cdn-icons-png.flaticon.com/512/5412/5412512.png" id="carrito">
-                <span class="cart-counter" id="cart-count">0</span>
-            </div>
-        </div>
-    </header>
 
-    <div class="hero-section">
-        <h1 class="hero-title">Bienvenidos</h1>
-        <div class="hero-line"></div>
-        <p class="hero-subtitle">Descubrí tu próxima historia</p>
+    <div class="left-panel">
+        <div class="brand">
+            <div class="brand-name">Bookstore</div>
+            <span class="brand-tag">Tu librería de confianza</span>
+        </div>
+        <div class="gold-line"></div>
+        <div class="left-copy">
+            <h2>Miles de historias te esperan</h2>
+            <p>Iniciá sesión para acceder a tu cuenta, revisar tus pedidos y descubrir las últimas novedades literarias.</p>
+        </div>
     </div>
 
-    <main>
-        <h2 class="section-label">Novedades</h2>
-        <div class="section-divider"></div>
+    <div class="right-panel">
+        <a href="inicio.html" class="back-link">← Volver a la tienda</a>
 
-        <div class="book-showcase">
+        <h1 class="panel-title">Bienvenido</h1>
+        <p class="panel-subtitle">Ingresá o creá tu cuenta para continuar</p>
 
-            <div class="book-card">
-                <div class="book-image-wrap">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSRLoOoI0K8Xq-BKcwFq-mK4GCcDY4w8W54A&s" alt="Libro 1" class="book-image">
-                    <span class="book-badge">Destacado</span>
-                </div>
-                <div class="book-info">
-                    <p class="book-genre"></p>
-                    <h3 class="book-name">Romanticismo</h3>
-                    <div class="book-footer">
-                       
-                    </div>
-                </div>
-            </div>
-
-            <div class="book-card">
-                <div class="book-image-wrap">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWx-rnxpTtxMdg2AtIMLEQBBAJtdLpepvEhg&s" alt="Libro 2" class="book-image">
-                </div>
-                <div class="book-info">
-                    <h2 class="book-name">Ficcion</h2>
-                   
-                    <div class="book-footer">
-                
-                        
-                    </div>
-                </div>
-            </div>
-
-            <div class="book-card">
-                <div class="book-image-wrap">
-                    <img src="https://www.bloomberglinea.com/resizer/v2/AFIIUEY52BAS5OBKCT4LHJV63Q.jpg?auth=3dbb65a477b4e889d4b42083ac073a2127b09d427f4ccdbe723419839da2addd&width=800&height=450&quality=80&smart=true" alt="Libro 3" class="book-image">
-                  
-                </div>
-                <div class="book-info">
-    
-                    <h3 class="book-name">Terror</h3>
-              
-                    <div class="book-footer">
-                        
-                        
-                    </div>
-                </div>
-            </div>
-
-            <div class="book-card">
-                <div class="book-image-wrap">
-                    <img src="https://thumbs.dreamstime.com/b/m%C3%A1scaras-del-teatro-de-la-comedia-y-de-la-tragedia-21958013.jpg" alt="Libro 4" class="book-image">
-                </div>
-                <div class="book-info">
-            
-                    <h3 class="book-name">Comedia</h3>
-
-                    <div class="book-footer">
-                        
-                        
-                    </div>
-                </div>
-            </div>
-
-            <div class="book-card">
-                <div class="book-image-wrap">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs8OSuskP5BtLo0KGXt0JuCU1tibDCpdxvXg&s" alt="Libro 5" class="book-image">
-                </div>
-                <div class="book-info">
-                   
-                    <h3 class="book-name">Misterio</h3>
-           
-                    <div class="book-footer">
-                        
-                        
-                    </div>
-                </div>
-            </div>
-
-            <div class="book-card">
-                <div class="book-image-wrap">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZnFxTr-pSLQ-EHoK1tTP8f5evl4RbJeaTzA&s" alt="Libro 6" class="book-image">
-                  
-                </div>
-                <div class="book-info">
-            
-                    <h3 class="book-name">Poesia</h3>
-    
-                    <div class="book-footer">
-                       
-                        
-                    </div>
-                </div>
-            </div>
-
+        <div class="form-tabs">
+            <button class="tab-btn active" onclick="switchTab('login', this)">Iniciar Sesión</button>
+            <button class="tab-btn" onclick="switchTab('register', this)">Registrarse</button>
         </div>
 
-        <h2 class="section-label">Por qué elegirnos</h2>
-        <div class="section-divider"></div>
+        <div class="alert alert-error" id="alert-error"></div>
+        <div class="alert alert-success" id="alert-success"></div>
 
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">📖</div>
-                <h3 class="feature-title">Gran Variedad</h3>
-                <p>Miles de títulos de todos los géneros para cada lector</p>
+        <!-- LOGIN -->
+        <div id="login-form" class="form-section active">
+            <div class="form-group">
+                <label for="username_login">Usuario</label>
+                <input type="text" id="username_login" autocomplete="username" placeholder="tu_usuario">
             </div>
-            <div class="feature">
-                <div class="feature-icon">🚚</div>
-                <h3 class="feature-title">Envío Rápido</h3>
-                <p>Recibí tus libros en la puerta de tu casa en tiempo récord</p>
+            <div class="form-group">
+                <label for="password_login">Contraseña</label>
+                <input type="password" id="password_login" autocomplete="current-password" placeholder="••••••••">
             </div>
-            <div class="feature">
-                <div class="feature-icon">⭐</div>
-                <h3 class="feature-title">Calidad Garantizada</h3>
-                <p>Libros seleccionados con el más alto estándar editorial</p>
-            </div>
+            <button class="submit-btn" onclick="handleLogin()">Iniciar Sesión</button>
         </div>
-    </main>
 
-    <!-- CART MODAL -->
-    <div class="cart-modal" id="cartModal">
-        <div class="cart-header">
-            <h2>Tu Carrito</h2>
-            <button class="cart-close" onclick="toggleCart()">✕</button>
+        <!-- REGISTRO -->
+        <div id="register-form" class="form-section">
+            <div class="form-group">
+                <label for="nombre">Nombre</label>
+                <input type="text" id="nombre" autocomplete="given-name" placeholder="Juan">
+            </div>
+            <div class="form-group">
+                <label for="apellido">Apellido</label>
+                <input type="text" id="apellido" autocomplete="family-name" placeholder="García">
+            </div>
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <input type="text" id="username" autocomplete="username" placeholder="juan.garcia">
+            </div>
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" autocomplete="new-password" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label for="rpassword">Confirmar contraseña</label>
+                <input type="password" id="rpassword" autocomplete="new-password" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label for="telefono">Teléfono</label>
+                <input type="tel" id="telefono" autocomplete="tel" placeholder="+54 11 0000-0000">
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" autocomplete="email" placeholder="tu@email.com">
+            </div>
+            <div class="form-group">
+                <label for="direccion">Dirección</label>
+                <input type="text" id="direccion" autocomplete="street-address" placeholder="Av. Corrientes 1234, CABA">
+            </div>
+            <button class="submit-btn" onclick="handleRegister()">Crear Cuenta</button>
         </div>
-        <div class="cart-items" id="cartItems">
-            <p style="color:#aaa; text-align:center; margin-top:2rem">El carrito está vacío</p>
+
+        <div class="form-footer">
+            <span></span>
+            <p>Bookstore · Rocio Monzon · Nicole Roglich · Denise Roglich</p>
         </div>
-        <div class="cart-total">
-            <span>Total</span>
-            <span id="cartTotal">$0.00</span>
-        </div>
-        <button class="checkout-btn">Finalizar Compra</button>
     </div>
-
-    <div class="toast" id="toast"></div>
-
-    <footer>
-        <p><span>Bookstore</span> &mdash; Rocio Monzon · Nicole Roglich · Denise Roglich</p>
-    </footer>
 
     <script>
-        let cart = [];
-        let total = 0;
-
-        function addToCart(name, price) {
-            cart.push({ name, price });
-            total += price;
-            document.getElementById('cart-count').textContent = cart.length;
-            renderCart();
-            showToast(`"${name}" agregado al carrito`);
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tab + '-form').classList.add('active');
+            btn.classList.add('active');
+            clearAlerts();
         }
 
-        function renderCart() {
-            const container = document.getElementById('cartItems');
-            if (cart.length === 0) {
-                container.innerHTML = '<p style="color:#aaa;text-align:center;margin-top:2rem">El carrito está vacío</p>';
-            } else {
-                container.innerHTML = cart.map(item => `
-                    <div class="cart-item">
-                        <span class="cart-item-name">${item.name}</span>
-                        <span class="cart-item-price">$${item.price.toFixed(2)}</span>
-                    </div>
-                `).join('');
+        function showError(msg) {
+            const el = document.getElementById('alert-error');
+            el.textContent = '⚠️ ' + msg;
+            el.classList.add('show');
+            document.getElementById('alert-success').classList.remove('show');
+        }
+
+        function showSuccess(msg) {
+            const el = document.getElementById('alert-success');
+            el.textContent = '✔ ' + msg;
+            el.classList.add('show');
+            document.getElementById('alert-error').classList.remove('show');
+        }
+
+        function clearAlerts() {
+            document.getElementById('alert-error').classList.remove('show');
+            document.getElementById('alert-success').classList.remove('show');
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('username_login').value.trim();
+            const password = document.getElementById('password_login').value.trim();
+            if (!username || !password) {
+                showError('Por favor completa todos los campos.');
+                return;
             }
-            document.getElementById('cartTotal').textContent = `$${total.toFixed(2)}`;
+
+            // Envía los datos al servidor
+            fetch('login.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    username: username,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showSuccess('¡Sesión iniciada correctamente! Redirigiendo...');
+                    setTimeout(() => window.location.href = data.redirect, 1000);  // Redirige después de 1s
+                } else {
+                    showError(data.message);
+                }
+            })
+            .catch(error => showError('Error de conexión: ' + error.message));
         }
 
-        function toggleCart() {
-            document.getElementById('cartModal').classList.toggle('open');
-        }
+        async function handleRegister() {
+            const nombre = document.getElementById('nombre').value.trim();
+            const apellido = document.getElementById('apellido').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const rpassword = document.getElementById('rpassword').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const direccion = document.getElementById('direccion').value.trim();
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2500);
+            if (!nombre || !apellido || !username || !password || !rpassword || !telefono || !email || !direccion) {
+                showError('Por favor completa todos los campos.');
+                return;
+            }
+
+            if (password !== rpassword) {
+                showError('Las contraseñas no coinciden.');
+                return;
+            }
+
+            // Envía los datos al servidor
+            try {
+                const response = await fetch('registro.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        nombre: nombre,
+                        apellido: apellido,
+                        user: username,
+                        pass: password,
+                        rpass: rpassword,
+                        telefono: telefono,
+                        email: email,
+                        direccion: direccion
+                    })
+                });
+
+                const result = await response.text();
+                if (response.ok) {
+                    showSuccess(result);  // Muestra el mensaje de registro.php
+                } else {
+                    showError('Error en el registro: ' + result);
+                }
+            } catch (error) {
+                showError('Error de conexión: ' + error.message);
+            }
         }
     </script>
-
 </body>
 </html>

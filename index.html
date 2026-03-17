@@ -181,16 +181,9 @@
             document.getElementById('cartModal').classList.toggle('open');
         }
 
-        function showLogin() {
-            fetch ('registro.php')
-             .then(response => response.text())
-             .then(html => {
-                const loginWindow = window.open('', 'Login', 'width=400,height=300');
-                loginWindow.document.write(html);
-             })
-             .catch(error => console.error('Error al cargar el formulario de login:', error));
-            alert('Funcionalidad de login próximamente');
-        }
+      function showLogin() {
+    window.location.href ='registro.php';
+}
 
         function showToast(msg) {
             const t = document.getElementById('toast');
