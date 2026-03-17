@@ -415,15 +415,28 @@ $icono_actual = isset($iconos[$id_genero]) ? $iconos[$id_genero] : '📚';
 </footer>
 
 <script>
+    const usuarioLogueado = <?= isset($_SESSION['usuario_id']) ? 'true' : 'false' ?>;
+
     let cart = [], total = 0;
 
-    function addToCart(name, price) {
-        cart.push({ name, price: parseFloat(price) });
-        total += parseFloat(price);
-        document.getElementById('cart-count').textContent = cart.length;
-        renderCart();
-        showToast('"' + name + '" agregado');
+function addToCart(name, price) {
+    if (!usuarioLogueado) {
+        // Esta es la alerta que verá el usuario
+        alert("¡Hola! Para sumar libros a tu carrito primero debes iniciar sesión o registrarte.");
+        
+        // Si quieres que después de la alerta lo mande directo al login:
+        // window.location.href = "login.php";
+        
+        return; // Esto evita que el libro se sume al carrito
     }
+
+    // Si está logueado, el código sigue normal...
+    cart.push({ name, price: parseFloat(price) });
+    total += parseFloat(price);
+    document.getElementById('cart-count').textContent = cart.length;
+    renderCart();
+    showToast('"' + name + '" agregado al carrito');
+}
 
     function renderCart() {
         const container = document.getElementById('cartItems');
