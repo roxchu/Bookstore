@@ -1,5 +1,5 @@
 <?php
-session_start();
+
 require_once 'conexion.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -8,7 +8,7 @@ $user = trim($_POST['username'] ?? '');
 $pass = $_POST['password'] ?? '';
 
 if ($user === '' || $pass === '') {
-    echo json_encode(['status' => 'error', 'message' => 'Completa todos los campos']);
+    echo json_encode(['status' => 'error', 'message' => 'Por favor, completa todos los campos']);
     exit;
 }
 
@@ -20,36 +20,35 @@ $result = $stmt->get_result();
 if ($result->num_rows === 1) {
     $row = $result->fetch_assoc();
     if (password_verify($pass, $row['pass'])) {
-
         
         $_SESSION['user_id'] = $row['id'];
         $_SESSION['rol_id']  = $row['rol_id'];
         $_SESSION['username'] = $user;
 
-     $_SESSION['usuario_id'] = $row['id']; 
-    $_SESSION['username']   = $user;
-
         $redirect = '';
+        
         switch ($row['rol_id']) {
-            case 1: // Admin
+            case 1: 
                 $redirect = 'panel_admin.html';
                 break;
-            case 2: // Empleado
+            case 2: 
                 $redirect = 'panel_empleado.html';
                 break;
-            case 3: // Cliente      
-                $redirect = 'index.php';
+            case 3: 
+                $redirect = 'index.html';
                 break;
             default:
-                echo json_encode(['status' => 'error', 'message' => 'Rol no reconocido']);
+                echo json_encode(['status' => 'error', 'message' => 'Rol de usuario no válido']);
                 exit;
         }
         echo json_encode(['status' => 'success', 'redirect' => $redirect]);
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Contraseña incorrecta']);
+        // Error de contraseña
+        echo json_encode(['status' => 'error', 'message' => 'La contraseña es incorrecta']);
     }
 } else {
-    echo json_encode(['status' => 'error', 'message' => 'Usuario no encontrado']);
+    // Error de usuario
+    echo json_encode(['status' => 'error', 'message' => 'El usuario no existe']);
 }
 
 $stmt->close();
