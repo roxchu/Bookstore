@@ -49,7 +49,8 @@ INSERT INTO `genero` (`id_genero`, `nombre_genero`) VALUES
 (1, 'Fantasía'),
 (2, 'Terror'),
 (3, 'Romance'),
-(4, 'Ciencia Ficción');
+(4, 'Comedia'),
+(6, 'Poesia');
 
 -- --------------------------------------------------------
 

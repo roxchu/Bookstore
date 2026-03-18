@@ -12,7 +12,7 @@ function crearAdmin($mysqli, $realname, $username, $password, $email) {
     $tel = "000";
     $dir = "Administración";
 
-    // 3. Insertar
+
     $stmt = $mysqli->prepare("INSERT INTO usuarios (realname, username, pass, email, telefono, direccion, rol_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("ssssssi", $realname, $username, $passHash, $email, $tel, $dir, $rol_id);
     
@@ -24,7 +24,7 @@ function crearAdmin($mysqli, $realname, $username, $password, $email) {
     $stmt->close();
 }
 
-// --- EJECUTAR LAS 3 CREACIONES ---
+
 crearAdmin($mysqli, 'Nicole Admin', 'nicole', 'admin123', 'nicole@gmail.com');
 crearAdmin($mysqli, 'Denise Admin', 'denise', 'admin123', 'denise@gmail.com');
 crearAdmin($mysqli, 'Rocio Admin',  'rocio',  'admin123', 'Rocioe@gmail.com');

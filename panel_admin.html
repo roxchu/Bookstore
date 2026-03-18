@@ -233,6 +233,7 @@
             padding: 0.9rem 1.2rem;
             font-size: 0.9rem;
             color: var(--text-dark);
+            vertical-align: middle;
         }
 
         .td-price {
@@ -356,7 +357,8 @@
         }
 
         .form-group input,
-        .form-group textarea {
+        .form-group textarea,
+        .form-group select {
             width: 100%;
             padding: 0.65rem 0.9rem;
             border: 1.5px solid #ddd;
@@ -367,7 +369,8 @@
         }
 
         .form-group input:focus,
-        .form-group textarea:focus {
+        .form-group textarea:focus,
+        .form-group select:focus {
             outline: none;
             border-color: var(--green-accent);
         }
@@ -468,7 +471,6 @@
         .toast.show { transform: translateX(-50%) translateY(0); }
         .toast.error { background: var(--red); }
 
-        /* LOADING */
         .loading {
             text-align: center;
             padding: 3rem;
@@ -492,7 +494,7 @@
             .stats-row { grid-template-columns: 1fr; }
             .toolbar { flex-direction: column; align-items: stretch; }
             .search-input { width: 100%; }
-            thead th:nth-child(3), tbody td:nth-child(3) { display: none; }
+            thead th:nth-child(2), tbody td:nth-child(2) { display: none; }
         }
     </style>
 </head>
@@ -505,7 +507,7 @@
     </div>
     <div class="header-right">
         <span class="admin-badge">Admin</span>
-        <a href="index.html" class="back-btn">← Volver</a>
+        <a href="index.php" class="back-btn">← Volver</a>
     </div>
 </header>
 
@@ -513,7 +515,6 @@
     <h1 class="page-title">Gestión de Productos</h1>
     <div class="page-divider"></div>
 
-    <!-- STATS -->
     <div class="stats-row">
         <div class="stat-card">
             <div class="stat-label">Total Productos</div>
@@ -529,13 +530,11 @@
         </div>
     </div>
 
-    <!-- TOOLBAR -->
     <div class="toolbar">
         <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre..." oninput="filterTable()">
         <button class="btn-primary" onclick="openCreateModal()">+ Nuevo Producto</button>
     </div>
 
-    <!-- TABLE -->
     <div class="table-wrap">
         <div id="tableContent">
             <div class="loading">
@@ -546,7 +545,6 @@
     </div>
 </div>
 
-<!-- MODAL: CREAR / EDITAR -->
 <div class="modal-overlay" id="formModal">
     <div class="modal">
         <div class="modal-header">
@@ -573,6 +571,20 @@
                     <input type="number" id="prodStock" placeholder="0" min="0">
                 </div>
             </div>
+            <div class="form-group">
+                <label>Género / Categoría</label>
+                <select id="prodGenero" required>
+                    <option value="">Seleccione un género...</option>
+                    <option value="1">Fantasía</option>
+                    <option value="2">Terror</option>
+                    <option value="3">Romance</option>
+                    <option value="4">Ciencia Ficción</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Imagen del libro</label>
+                <input type="file" id="prodImagen" accept="image/*">
+            </div>
         </div>
         <div class="modal-footer">
             <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
@@ -581,7 +593,6 @@
     </div>
 </div>
 
-<!-- MODAL: CONFIRMAR ELIMINAR -->
 <div class="modal-overlay" id="confirmModal">
     <div class="confirm-modal">
         <div class="confirm-body">
@@ -602,30 +613,23 @@
     let allProducts = [];
     let deleteId = null;
 
- 
     async function loadProducts() {
         try {
             const res = await fetch('admin_productos.php?action=list');
             const data = await res.json();
             if (data.status === 'success') {
                 allProducts = data.productos;
-                updateStats();
                 renderTable(allProducts);
+                updateStats();
             } else {
-                showError('No se pudieron cargar los productos.');
+                showError(data.message || 'Error al cargar productos');
             }
         } catch (e) {
+            console.error(e);
             showError('Error de conexión con el servidor.');
         }
     }
 
-    function updateStats() {
-        document.getElementById('stat-total').textContent = allProducts.length;
-        document.getElementById('stat-zero').textContent = allProducts.filter(p => p.stock == 0).length;
-        document.getElementById('stat-low').textContent = allProducts.filter(p => p.stock > 0 && p.stock <= 5).length;
-    }
-
-    
     function renderTable(products) {
         const wrap = document.getElementById('tableContent');
         if (products.length === 0) {
@@ -637,10 +641,19 @@
             const stockClass = p.stock == 0 ? 'stock-zero' : (p.stock <= 5 ? 'stock-low' : 'stock-ok');
             const stockLabel = p.stock == 0 ? 'Sin stock' : p.stock;
             const nombre = escHtml(p.nombre ?? '—');
-            const detalle = escHtml((p.detalle ?? '').substring(0, 60)) + ((p.detalle ?? '').length > 60 ? '...' : '');
+            const detalle = escHtml((p.detalle ?? '').substring(0, 40)) + ((p.detalle ?? '').length > 40 ? '...' : '');
+           
+            // Lógica de imagen: si no hay, ponemos un placeholder
+            const imgPath = p.imagen ? 'img/' + p.imagen : 'img/no-book.jpg';
+
             return `
                 <tr>
-                    <td><strong>${nombre}</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <img src="${imgPath}" style="width: 40px; height: 55px; object-fit: cover; border-radius: 3px; background: #eee;">
+                            <strong>${nombre}</strong>
+                        </div>
+                    </td>
                     <td style="color:#777;font-size:0.85rem">${detalle}</td>
                     <td class="td-price">$${Number(p.precio).toLocaleString('es-AR')}</td>
                     <td><span class="stock-badge ${stockClass}">${stockLabel}</span></td>
@@ -657,8 +670,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Nombre</th>
-                        <th>Detalle</th>
+                        <th>Libro</th>
+                        <th>Descripción</th>
                         <th>Precio</th>
                         <th>Stock</th>
                         <th>Acciones</th>
@@ -668,13 +681,17 @@
             </table>`;
     }
 
-   
+    function updateStats() {
+        document.getElementById('stat-total').textContent = allProducts.length;
+        document.getElementById('stat-zero').textContent = allProducts.filter(p => p.stock == 0).length;
+        document.getElementById('stat-low').textContent = allProducts.filter(p => p.stock > 0 && p.stock <= 5).length;
+    }
+
     function filterTable() {
         const q = document.getElementById('searchInput').value.toLowerCase();
         const filtered = allProducts.filter(p => (p.nombre ?? '').toLowerCase().includes(q));
         renderTable(filtered);
     }
-
 
     function openCreateModal() {
         document.getElementById('modalTitle').textContent = 'Nuevo Producto';
@@ -683,10 +700,12 @@
         document.getElementById('prodDetalle').value = '';
         document.getElementById('prodPrecio').value = '';
         document.getElementById('prodStock').value = '';
+        document.getElementById('prodGenero').value = '';
+        document.getElementById('prodImagen').value = '';
         document.getElementById('formModal').classList.add('open');
     }
 
-   
+    function openEditModal(id) {
         const p = allProducts.find(x => x.id == id);
         if (!p) return;
         document.getElementById('modalTitle').textContent = 'Editar Producto';
@@ -695,45 +714,64 @@
         document.getElementById('prodDetalle').value = p.detalle ?? '';
         document.getElementById('prodPrecio').value = p.precio ?? '';
         document.getElementById('prodStock').value = p.stock ?? '';
+        document.getElementById('prodGenero').value = p.id_genero ?? '';
+        document.getElementById('prodImagen').value = '';
         document.getElementById('formModal').classList.add('open');
-    
+    }
 
     function closeModal() {
         document.getElementById('formModal').classList.remove('open');
     }
 
-  
     async function saveProduct() {
-        const id     = document.getElementById('productId').value;
-        const nombre = document.getElementById('prodNombre').value.trim();
-        const detalle= document.getElementById('prodDetalle').value.trim();
-        const precio = document.getElementById('prodPrecio').value;
-        const stock  = document.getElementById('prodStock').value;
-
-        if (!nombre || precio === '' || stock === '') {
-            showToast('Completá todos los campos requeridos.', true);
-            return;
-        }
-
-        const action = id ? 'update' : 'create';
-        const body   = new URLSearchParams({ action, id, nombre, detalle, precio, stock });
-
         try {
-            const res  = await fetch('admin_productos.php', { method: 'POST', body });
-            const data = await res.json();
+            const id = document.getElementById('productId').value;
+            const nombre = document.getElementById('prodNombre').value.trim();
+            const detalle = document.getElementById('prodDetalle').value.trim();
+            const precio = document.getElementById('prodPrecio').value;
+            const stock = document.getElementById('prodStock').value;
+            const genero = document.getElementById('prodGenero').value;
+            const imagenInput = document.getElementById('prodImagen');
+
+            if (!nombre || precio === '' || stock === '' || !genero) {
+                showToast('Completa todos los campos obligatorios.', true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'save');
+            formData.append('id', id);
+            formData.append('nombre', nombre);
+            formData.append('detalle', detalle);
+            formData.append('precio', precio);
+            formData.append('stock', stock);
+            formData.append('id_genero', genero);
+
+            if (imagenInput.files && imagenInput.files[0]) {
+                formData.append('imagen', imagenInput.files[0]);
+            }
+
+            const res = await fetch('admin_productos.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const text = await res.text();
+            const data = JSON.parse(text);
+
             if (data.status === 'success') {
                 closeModal();
                 showToast(id ? 'Producto actualizado.' : 'Producto creado.');
                 loadProducts();
             } else {
-                showToast(data.message ?? 'Error al guardar.', true);
+                showToast(data.message || 'Error al guardar.', true);
             }
         } catch (e) {
-            showToast('Error de conexión.', true);
+            console.error(e);
+            showToast('Error crítico al procesar la respuesta.', true);
         }
     }
 
-  
     function askDelete(id, name) {
         deleteId = id;
         document.getElementById('confirmText').textContent = `Vas a eliminar "${name}". Esta acción no se puede deshacer.`;
@@ -747,9 +785,12 @@
 
     async function confirmDelete() {
         if (!deleteId) return;
-        const body = new URLSearchParams({ action: 'delete', id: deleteId });
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('id', deleteId);
+
         try {
-            const res  = await fetch('admin_productos.php', { method: 'POST', body });
+            const res = await fetch('admin_productos.php', { method: 'POST', body: formData });
             const data = await res.json();
             if (data.status === 'success') {
                 closeConfirm();
@@ -763,7 +804,6 @@
         }
     }
 
- 
     function showToast(msg, isError = false) {
         const t = document.getElementById('toast');
         t.textContent = msg;
@@ -780,11 +820,10 @@
         return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    // Cerrar modales al hacer click fuera
     document.getElementById('formModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
     document.getElementById('confirmModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeConfirm(); });
 
-   
+    document.addEventListener('DOMContentLoaded', loadProducts);
 </script>
 
 </body>
