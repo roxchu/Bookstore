@@ -1,44 +1,33 @@
 <?php
 require_once 'conexion.php';
 
-// ─── DATOS DEL ADMIN ─────────────────────────────────────────────────────────
-$realname  = 'Nicole Admin';
-$username  = 'nicole';
-$email     = 'nicole@gmail.com';
-$password  = 'admin1233';
-$telefono  = '000000000';
-$direccion = 'Administración';
-$rol_id    = 1; // Admin
-// ─────────────────────────────────────────────────────────────────────────────
+// Función para no repetir código
+function crearAdmin($mysqli, $realname, $username, $password, $email) {
+    // 1. Borrar si ya existe (para evitar errores de duplicado)
+    $mysqli->query("DELETE FROM usuarios WHERE username = '$username' OR email = '$email'");
 
-// Verificar si ya existe
-$check = $mysqli->prepare("SELECT id FROM usuarios WHERE email = ?");
-$check->bind_param("s", $email);
-$check->execute();
-$check->store_result();
+    // 2. Encriptar contraseña
+    $passHash = password_hash($password, PASSWORD_DEFAULT);
+    $rol_id = 1; // Admin
+    $tel = "000";
+    $dir = "Administración";
 
-if ($check->num_rows > 0) {
-    echo "⚠️ El usuario admin ya existe en la base de datos.";
-    $check->close();
-    $mysqli->close();
-    exit;
-}
-$check->close();
-
-$passHash = password_hash($password, PASSWORD_DEFAULT);
-
-$stmt = $mysqli->prepare("INSERT INTO usuarios (realname, username, pass, email, telefono, direccion, rol_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-$stmt->bind_param("ssssssi", $realname, $username, $passHash, $email, $telefono, $direccion, $rol_id);
-
-if ($stmt->execute()) {
-    echo "✅ Admin creado correctamente.<br>";
-    echo "📧 Email: <strong>$email</strong><br>";
-    echo "🔑 Contraseña: <strong>$password</strong><br>";
-    echo "<br>⚠️ <strong>Eliminá este archivo del servidor después de usarlo.</strong>";
-} else {
-    echo "❌ Error al crear el admin: " . $stmt->error;
+    // 3. Insertar
+    $stmt = $mysqli->prepare("INSERT INTO usuarios (realname, username, pass, email, telefono, direccion, rol_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssssssi", $realname, $username, $passHash, $email, $tel, $dir, $rol_id);
+    
+    if ($stmt->execute()) {
+        echo "✅ Admin <b>$username</b> creado con éxito.<br>";
+    } else {
+        echo "❌ Error con $username: " . $mysqli->error . "<br>";
+    }
+    $stmt->close();
 }
 
-$stmt->close();
+// --- EJECUTAR LAS 3 CREACIONES ---
+crearAdmin($mysqli, 'Nicole Admin', 'nicole', 'admin123', 'nicole@gmail.com');
+crearAdmin($mysqli, 'Denise Admin', 'denise', 'admin123', 'denise@gmail.com');
+crearAdmin($mysqli, 'Rocio Admin',  'rocio',  'admin123', 'Rocioe@gmail.com');
+
 $mysqli->close();
 ?>

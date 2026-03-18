@@ -1,16 +1,17 @@
 <?php
 session_start();
 require_once 'conexion.php';
+session_start(); 
+header('Content-Type: application/json; charset=utf-8');
 
 $user = trim($_POST['username'] ?? '');
 $pass = $_POST['password'] ?? '';
 
 if ($user === '' || $pass === '') {
-    echo "Completa todos los campos";
+    echo json_encode(['status' => 'error', 'message' => 'Completa todos los campos']);
     exit;
 }
 
-// Consulta para obtener usuario y rol
 $stmt = $mysqli->prepare("SELECT id, pass, rol_id FROM usuarios WHERE username = ?");
 $stmt->bind_param("s", $user);
 $stmt->execute();
@@ -19,8 +20,15 @@ $result = $stmt->get_result();
 if ($result->num_rows === 1) {
     $row = $result->fetch_assoc();
     if (password_verify($pass, $row['pass'])) {
+HEAD
+        
+        $_SESSION['user_id'] = $row['id'];
+        $_SESSION['rol_id']  = $row['rol_id'];
+        $_SESSION['username'] = $user;
+
      $_SESSION['usuario_id'] = $row['id']; 
     $_SESSION['username']   = $user;
+bb19a4ef9295276777895b84a73e9e29ac34e629
         $redirect = '';
         switch ($row['rol_id']) {
             case 1: // Admin
@@ -41,7 +49,7 @@ if ($result->num_rows === 1) {
         echo json_encode(['status' => 'error', 'message' => 'Contraseña incorrecta']);
     }
 } else {
-    echo "Usuario no encontrado";
+    echo json_encode(['status' => 'error', 'message' => 'Usuario no encontrado']);
 }
 
 $stmt->close();
