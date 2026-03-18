@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once 'conexion.php';
 session_start(); 
 header('Content-Type: application/json; charset=utf-8');
@@ -19,10 +20,15 @@ $result = $stmt->get_result();
 if ($result->num_rows === 1) {
     $row = $result->fetch_assoc();
     if (password_verify($pass, $row['pass'])) {
+HEAD
         
         $_SESSION['user_id'] = $row['id'];
         $_SESSION['rol_id']  = $row['rol_id'];
         $_SESSION['username'] = $user;
+
+     $_SESSION['usuario_id'] = $row['id']; 
+    $_SESSION['username']   = $user;
+bb19a4ef9295276777895b84a73e9e29ac34e629
         $redirect = '';
         switch ($row['rol_id']) {
             case 1: // Admin
@@ -32,7 +38,7 @@ if ($result->num_rows === 1) {
                 $redirect = 'panel_empleado.html';
                 break;
             case 3: // Cliente      
-                $redirect = 'index.html';
+                $redirect = 'index.php';
                 break;
             default:
                 echo json_encode(['status' => 'error', 'message' => 'Rol no reconocido']);
