@@ -230,6 +230,108 @@ $generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
         .cart-modal { display: none; position: fixed; top: 0; right: 0; width: 350px; height: 100vh; background: white; z-index: 2000; box-shadow: -5px 0 15px rgba(0,0,0,0.1); flex-direction: column; }
         .cart-modal.open { display: flex; }
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--green-mid); color: white; padding: 10px 20px; border-radius: 50px; display: none; z-index: 3000; }
+
+        /* Estilo del desplegable */
+.book-description {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: #444;
+    border-top: 1px solid var(--green-pale);
+    padding-top: 5px;
+}
+
+.book-description summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--green-mid);
+    outline: none;
+    list-style: none; /* Quita la flechita por defecto en algunos navegadores */
+}
+
+.book-description summary::-webkit-details-marker {
+    display: none; /* Quita la flechita en Safari/Chrome */
+}
+
+.book-description summary:hover {
+    color: var(--gold);
+}
+
+.book-description p {
+    background: var(--green-pale);
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 5px;
+    line-height: 1.4;
+}
+.invoice-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: none; /* Se activa con JS */
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.invoice-box {
+    background: white;
+    width: 90%;
+    max-width: 450px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.invoice-header {
+    background: var(--green-deep);
+    color: var(--gold);
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+}
+
+.invoice-body {
+    padding: 2rem;
+    color: var(--text-dark);
+    font-family: 'Courier New', Courier, monospace; /* Estilo ticket */
+}
+
+.invoice-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    border-bottom: 1px dashed #ccc;
+}
+
+.confirm-btn {
+    width: 100%;
+    background: var(--gold);
+    color: var(--green-deep);
+    border: none;
+    padding: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.confirm-btn:hover { background: #b8973d; }
+/* Esto hace que el modal de checkout se comporte como el del carrito */
+#checkoutModal {
+    display: none; 
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 350px;
+    height: 100vh;
+    background: white;
+    z-index: 2500;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+    flex-direction: column;
+}
+
+#checkoutModal.open {
+    display: flex;
+}
     </style>
 </head>
 <body>
@@ -297,16 +399,28 @@ $generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
                     <div class="book-img-wrap">
                         <img src="img/<?= htmlspecialchars($libro['imagen']) ?>" onerror="this.src='https://via.placeholder.com/200x300?text=Libro'">
                     </div>
+                    
                     <div class="book-body">
                         <h3 class="book-title"><?= htmlspecialchars($libro['nombre']) ?></h3>
-                        <p style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">por <?= htmlspecialchars($libro['autor']) ?></p>
-                        <p class="book-price">$<?= number_format($libro['precio'], 2) ?></p>
-                        <button class="add-btn" onclick="addToCart('<?= addslashes($libro['nombre']) ?>', <?= $libro['precio'] ?>)">+ Agregar</button>
+                        <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">por <?= htmlspecialchars($libro['autor']) ?></p>
+
+                        <details class="book-description">
+                            <summary>Ver descripción</summary>
+                            <div class="description-text">
+                                <?= htmlspecialchars($libro['detalle'] ?? 'Sin descripción disponible.') ?>
+                            </div>
+                        </details>
+
+                        <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 15px;">
+                            <span class="book-price">$<?= number_format($libro['precio'], 2) ?></span>
+                            <button class="add-btn" onclick="addToCart('<?= htmlspecialchars(addslashes($libro['nombre'])) ?>', <?= $libro['precio'] ?>)">+ Carrito</button>
+                        </div>
                     </div>
                 </div>
             <?php endwhile; ?>
         <?php endif; ?>
     </section>
+    
 </div>
 
 <div class="cart-modal" id="cartModal">
@@ -314,13 +428,31 @@ $generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
         <h3>Carrito</h3>
         <button onclick="toggleCart()" style="background:none; border:none; color:white; cursor:pointer;">✕</button>
     </div>
-    <div id="cartItems" style="flex:1; padding:1rem; overflow-y:auto;"></div>
+    
+    <div id="cartItems" style="flex:1; padding:1rem; overflow-y:auto;">
+        </div>
+    
     <div style="padding:1rem; border-top:1px solid #eee;">
         <strong>Total: <span id="cartTotal">$0.00</span></strong>
-        <button style="width:100%; background:var(--gold); border:none; padding:10px; margin-top:10px; cursor:pointer; font-weight:bold;">COMPRAR</button>
+        
+        <button onclick="finalizarCompra()" style="width:100%; background:var(--gold); border:none; padding:10px; margin-top:10px; cursor:pointer; font-weight:bold; color:var(--green-deep);">
+            FINALIZAR COMPRA
+        </button>
     </div>
 </div>
-
+<div id="invoiceModal" class="invoice-overlay">
+    <div class="invoice-box">
+        <div class="invoice-header">
+            <h2>PROCESANDO COMPRA</h2>
+            <button onclick="closeInvoice()" class="close-invoice">✕</button>
+        </div>
+        <div id="invoiceContent" class="invoice-body">
+            </div>
+        <div class="invoice-footer">
+            <button onclick="confirmarPedido()" class="confirm-btn">CONFIRMAR Y FINALIZAR</button>
+        </div>
+    </div>
+</div>
 <div id="toast" class="toast"></div>
 
 <script>
@@ -358,8 +490,133 @@ $generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
         t.textContent = msg; t.style.display = 'block';
         setTimeout(() => t.style.display = 'none', 2000);
     }
-</script>
+    function finalizarCompra() {
+    if (cart.length === 0) {
+        alert("El carrito está vacío");
+        return;
+    }
+    
+    // Cerramos el carrito lateral y abrimos el de finalizar
+    toggleCart(); 
+    document.getElementById('checkoutModal').classList.add('open');
+    
+    // Llenamos el resumen
+    const summary = document.getElementById('checkoutSummary');
+    summary.innerHTML = cart.map(item => `
+        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <span>${item.name}</span>
+            <span>$${item.price.toFixed(2)}</span>
+        </div>
+    `).join('');
+    
+    actualizarTotalFinal();
+}
 
+function actualizarTotalFinal() {
+    const metodo = document.querySelector('input[name="metodoPago"]:checked').value;
+    let descuento = (metodo === 'transferencia') ? total * 0.10 : 0;
+    let neto = total - descuento;
+
+    document.getElementById('st-total').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('desc-total').textContent = `-$${descuento.toFixed(2)}`;
+    document.getElementById('final-total').textContent = `$${neto.toFixed(2)}`;
+}
+
+function closeCheckout() {
+    document.getElementById('checkoutModal').classList.remove('open');
+}
+
+async function confirmarVentaFinal() {
+    const metodoElegido = document.querySelector('input[name="metodoPago"]:checked').value;
+    const totalFinalNum = parseFloat(document.getElementById('final-total').textContent.replace('$', ''));
+
+    const datosVenta = {
+        total: totalFinalNum,
+        metodo: metodoElegido,
+        items: cart 
+    };
+
+    try {
+        const respuesta = await fetch('guardar_venta.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosVenta)
+        });
+
+        // 🔍 PASO CLAVE: Leemos como texto para ver errores ocultos
+        const textoRespuesta = await respuesta.text();
+        console.log("DEBUG - Respuesta del servidor:", textoRespuesta);
+
+        // Intentamos convertir a JSON
+        const resultado = JSON.parse(textoRespuesta);
+
+        if (resultado.success) {
+            alert("¡Compra exitosa!");
+            cart = []; total = 0;
+            document.getElementById('cart-count').textContent = '0';
+            renderCart();
+            closeCheckout();
+        } else {
+            alert("Error del servidor: " + resultado.error);
+        }
+
+    } catch (e) {
+        console.error("Error detallado:", e);
+        alert("Error de conexión. Abrí la consola (F12) para ver la respuesta real del servidor.");
+    }
+}
+
+function confirmarPedido() {
+    alert("¡Pedido confirmado con éxito!");
+    // Aquí es donde luego limpiarías el carrito y guardarías en la BD
+    cart = [];
+    total = 0;
+    document.getElementById('cart-count').textContent = '0';
+    renderCart();
+    closeInvoice();
+}
+</script>
+<div class="cart-modal" id="checkoutModal">
+    <div style="background:var(--green-deep); color:white; padding:1.5rem; display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="font-family:'Playfair Display';">Finalizar Compra</h2>
+        <button onclick="closeCheckout()" style="background:none; border:none; color:white; cursor:pointer; font-size:1.5rem;">✕</button>
+    </div>
+
+    <div style="padding:1.5rem; flex:1; overflow-y:auto;">
+        <h3 style="color:var(--green-mid); border-bottom:1px solid var(--gold); padding-bottom:10px;">1. Resumen del Pedido</h3>
+        <div id="checkoutSummary" style="margin:15px 0; font-size:0.9rem;"></div>
+
+        <h3 style="color:var(--green-mid); border-bottom:1px solid var(--gold); padding-bottom:10px; margin-top:20px;">2. Método de Pago</h3>
+        <div style="margin-top:15px;">
+            <label style="display:block; margin-bottom:10px; cursor:pointer;">
+                <input type="radio" name="metodoPago" value="transferencia" checked onchange="actualizarTotalFinal()"> 
+                🏦 Transferencia (10% OFF)
+            </label>
+            <label style="display:block; cursor:pointer;">
+                <input type="radio" name="metodoPago" value="tarjeta" onchange="actualizarTotalFinal()"> 
+                💳 Tarjeta Débito/Crédito
+            </label>
+        </div>
+    </div>
+
+    <div style="padding:1.5rem; border-top:2px solid var(--gold); background:var(--green-pale);">
+        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <span>Subtotal:</span>
+            <span id="st-total"></span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:red;">
+            <span>Descuento:</span>
+            <span id="desc-total"></span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.2rem;">
+            <span>TOTAL:</span>
+            <span id="final-total" style="color:var(--green-deep);"></span>
+        </div>
+        <button onclick="confirmarVentaFinal()" style="width:100%; background:var(--green-deep); color:white; border:none; padding:15px; margin-top:15px; cursor:pointer; font-weight:bold; border-radius:5px;">
+            CONFIRMAR Y PAGAR
+        </button>
+    </div>
+</div>
 </body>
 </html>
 <?php $conexion->close(); ?>
