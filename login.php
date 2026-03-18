@@ -20,7 +20,7 @@ $result = $stmt->get_result();
 if ($result->num_rows === 1) {
     $row = $result->fetch_assoc();
     if (password_verify($pass, $row['pass'])) {
-HEAD
+
         
         $_SESSION['user_id'] = $row['id'];
         $_SESSION['rol_id']  = $row['rol_id'];
@@ -28,7 +28,7 @@ HEAD
 
      $_SESSION['usuario_id'] = $row['id']; 
     $_SESSION['username']   = $user;
-bb19a4ef9295276777895b84a73e9e29ac34e629
+
         $redirect = '';
         switch ($row['rol_id']) {
             case 1: // Admin
