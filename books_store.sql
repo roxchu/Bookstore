@@ -1,8 +1,3 @@
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
-
-
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -11,6 +6,29 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `books_store`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `detalle_ventas`
+--
+
+CREATE TABLE `detalle_ventas` (
+  `id_detalle` int(11) NOT NULL,
+  `id_venta` int(11) DEFAULT NULL,
+  `nombre_producto` varchar(255) DEFAULT NULL,
+  `precio` decimal(10,2) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `detalle_ventas`
+--
+
+INSERT INTO `detalle_ventas` (`id_detalle`, `id_venta`, `nombre_producto`, `precio`) VALUES
+(1, 2, 'El Resplandor', 18500.50),
+(2, 3, 'El Resplandor', 18500.50),
+(3, 4, 'El Resplandor', 18500.50),
+(4, 5, 'Harry Potter y la Piedra Filosofal', 25000.00);
 
 -- --------------------------------------------------------
 
@@ -116,6 +134,14 @@ CREATE TABLE `usuarios` (
   `direccion` varchar(110) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `usuarios`
+--
+
+INSERT INTO `usuarios` (`id`, `realname`, `rol_id`, `pass`, `email`, `username`, `telefono`, `direccion`) VALUES
+(1, 'denise roglich', 3, '$2y$10$/w7vHAU6/StCWkD0.KVmheJbtWGQzCt3We4wovsbj14Gh0ip9dxnu', 'denuarmy279@gmail.com', 'denu', '1137742173', 'ahda 121'),
+(2, 'juan Garcica', 3, '$2y$10$7/d.PA3Jbevkc2hfrDStlOGpzFlBF3ScAJ3NfHexRoMqDM4Nk7epq', 'juan@mail.com', 'juan', '1137742172', 'calle falsa 123');
+
 -- --------------------------------------------------------
 
 --
@@ -127,12 +153,30 @@ CREATE TABLE `ventas` (
   `id_usuario` int(11) NOT NULL,
   `productos` text NOT NULL,
   `total` decimal(11,2) NOT NULL,
-  `fecha` timestamp NOT NULL DEFAULT current_timestamp()
+  `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
+  `metodo_pago` varchar(50) DEFAULT 'Transferencia/Efectivo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `ventas`
+--
+
+INSERT INTO `ventas` (`id_venta`, `id_usuario`, `productos`, `total`, `fecha`, `metodo_pago`) VALUES
+(1, 1, 'El Resplandor', 16650.45, '2026-03-18 13:52:08', 'transferencia'),
+(2, 1, '', 16650.45, '2026-03-18 13:54:03', 'transferencia'),
+(3, 1, '', 16650.45, '2026-03-18 14:00:15', 'transferencia'),
+(4, 1, '', 16650.45, '2026-03-18 14:02:11', 'transferencia'),
+(5, 1, '', 22500.00, '2026-03-18 14:02:27', 'transferencia');
 
 --
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `detalle_ventas`
+--
+ALTER TABLE `detalle_ventas`
+  ADD PRIMARY KEY (`id_detalle`);
 
 --
 -- Indices de la tabla `genero`
@@ -180,6 +224,12 @@ ALTER TABLE `ventas`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `detalle_ventas`
+--
+ALTER TABLE `detalle_ventas`
+  MODIFY `id_detalle` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT de la tabla `genero`
 --
 ALTER TABLE `genero`
@@ -207,13 +257,13 @@ ALTER TABLE `rol`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id_venta` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Restricciones para tablas volcadas

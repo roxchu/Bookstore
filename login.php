@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once 'conexion.php';
-session_start(); 
+
 header('Content-Type: application/json; charset=utf-8');
 
 $user = trim($_POST['username'] ?? '');
