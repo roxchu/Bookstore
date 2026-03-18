@@ -100,6 +100,7 @@ session_start();
 
 <body>
     <header>
+        
         <a href="index.php" class="logo">
             <span class="logo-main">Bookstore</span>
             <span class="logo-sub">Tu librería de confianza</span>
