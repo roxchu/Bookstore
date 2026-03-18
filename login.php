@@ -19,7 +19,8 @@ $result = $stmt->get_result();
 if ($result->num_rows === 1) {
     $row = $result->fetch_assoc();
     if (password_verify($pass, $row['pass'])) {
-        // Redirigir según rol
+     $_SESSION['usuario_id'] = $row['id']; 
+    $_SESSION['username']   = $user;
         $redirect = '';
         switch ($row['rol_id']) {
             case 1: // Admin
