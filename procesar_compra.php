@@ -16,11 +16,12 @@ if(isset($_SESSION['usuario_id']) && !empty($data['items'])) {
     $id_venta = $stmt->insert_id;
 
     // 2. Insertar cada libro en el detalle
-    $stmt_det = $conexion->prepare("INSERT INTO detalle_ventas (id_venta, nombre_producto, precio) VALUES (?, ?, ?)");
-    foreach($data['items'] as $item) {
-        $stmt_det->bind_param("isd", $id_venta, $item['name'], $item['price']);
-        $stmt_det->execute();
-    }
+   $data = json_decode(file_get_contents('php://input'), true); 
+
+// Luego, antes de usarlo, verifica que NO sea un string:
+if (!is_array($data)) {
+    die(json_encode(['success' => false, 'error' => 'Los datos no llegaron como un array']));
+}
 
     echo json_encode(['success' => true, 'id_factura' => $id_venta]);
 }
