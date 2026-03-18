@@ -6,10 +6,89 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bookstore</title>
+    <title>Bookstore — Bienvenidos</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <style>
+        /* AJUSTES PARA EL HEADER FLEXIBLE */
+        header {
+            background: var(--green-deep);
+            padding: 0.8rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 3px solid var(--gold);
+            gap: 20px;
+        }
+
+        .logo {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+        }
+
+        /* BARRA DE BÚSQUEDA CENTRADA */
+        .search-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            max-width: 550px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1.5px solid var(--green-accent);
+            border-radius: 50px;
+            padding: 2px 5px 2px 18px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus-within {
+            background: white;
+            border-color: var(--gold);
+            box-shadow: 0 0 12px rgba(201, 168, 76, 0.3);
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            width: 100%;
+            padding: 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .search-box:focus-within input {
+            color: #1a2e1e;
+        }
+
+        .search-box button {
+            background: var(--gold);
+            border: none;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-shrink: 0;
+        }
+
         a.book-card {
             text-decoration: none;
             color: inherit;
@@ -21,23 +100,31 @@ session_start();
 
 <body>
     <header>
-        <div class="logo">
+        <a href="index.php" class="logo">
             <span class="logo-main">Bookstore</span>
             <span class="logo-sub">Tu librería de confianza</span>
-        </div>
-        <div class="header-right">
-    <?php if(isset($_SESSION['username'])): ?>
-        <span style="color: var(--cream); font-size: 0.9rem;">Hola, <?= htmlspecialchars($_SESSION['username']) ?></span>
-        <a href="logout.php" class="login-btn" style="margin-left: 10px;">Salir</a>
-    <?php else: ?>
-        <a href="login.html" class="login-btn">Ingresar</a>
-    <?php endif; ?>
+        </a>
 
-    <div class="cart-container" onclick="toggleCart()">
-        <img src="https://cdn-icons-png.flaticon.com/512/5412/5412512.png" id="carrito">
-        <span class="cart-counter" id="cart-count">0</span>
-    </div>
-</div>
+        <form action="Libros.php" method="GET" class="search-container">
+            <div class="search-box">
+                <input type="text" name="q" placeholder="¿Qué historia buscas hoy?">
+                <button type="submit">🔍</button>
+            </div>
+        </form>
+
+        <div class="header-right">
+            <?php if(isset($_SESSION['username'])): ?>
+                <span style="color: var(--cream); font-size: 0.9rem; font-weight: bold;">Hola, <?= htmlspecialchars($_SESSION['username']) ?></span>
+                <a href="logout.php" class="login-btn" style="margin-left: 10px;">Salir</a>
+            <?php else: ?>
+                <a href="login.html" class="login-btn">Ingresar</a>
+            <?php endif; ?>
+
+            <div class="cart-container" onclick="toggleCart()">
+                <img src="https://cdn-icons-png.flaticon.com/512/5412/5412512.png" id="carrito">
+                <span class="cart-counter" id="cart-count">0</span>
+            </div>
+        </div>
     </header>
 
     <div class="hero-section">
@@ -47,12 +134,10 @@ session_start();
     </div>
 
     <main>
-        <h2 class="section-label">Novedades</h2>
+        <h2 class="section-label">Novedades por Género</h2>
         <div class="section-divider"></div>
 
         <div class="book-showcase">
-
-            <!-- Romanticismo → id_genero=3 -->
             <a href="libros.php?genero=3" class="book-card">
                 <div class="book-image-wrap">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSRLoOoI0K8Xq-BKcwFq-mK4GCcDY4w8W54A&s" alt="Romanticismo" class="book-image">
@@ -63,17 +148,15 @@ session_start();
                 </div>
             </a>
 
-            <!-- Ficcion → id_genero=1 -->
             <a href="libros.php?genero=1" class="book-card">
                 <div class="book-image-wrap">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWx-rnxpTtxMdg2AtIMLEQBBAJtdLpepvEhg&s" alt="Ficcion" class="book-image">
                 </div>
                 <div class="book-info">
-                    <h3 class="book-name">Ficcion</h3>
+                    <h3 class="book-name">Ficción</h3>
                 </div>
             </a>
 
-            <!-- Terror → id_genero=2 -->
             <a href="libros.php?genero=2" class="book-card">
                 <div class="book-image-wrap">
                     <img src="https://www.bloomberglinea.com/resizer/v2/AFIIUEY52BAS5OBKCT4LHJV63Q.jpg?auth=3dbb65a477b4e889d4b42083ac073a2127b09d427f4ccdbe723419839da2addd&width=800&height=450&quality=80&smart=true" alt="Terror" class="book-image">
@@ -83,7 +166,6 @@ session_start();
                 </div>
             </a>
 
-            <!-- Comedia → id_genero=4 -->
             <a href="libros.php?genero=4" class="book-card">
                 <div class="book-image-wrap">
                     <img src="https://thumbs.dreamstime.com/b/m%C3%A1scaras-del-teatro-de-la-comedia-y-de-la-tragedia-21958013.jpg" alt="Comedia" class="book-image">
@@ -93,7 +175,6 @@ session_start();
                 </div>
             </a>
 
-            <!-- Misterio → id_genero=5 -->
             <a href="libros.php?genero=5" class="book-card">
                 <div class="book-image-wrap">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs8OSuskP5BtLo0KGXt0JuCU1tibDCpdxvXg&s" alt="Misterio" class="book-image">
@@ -103,16 +184,14 @@ session_start();
                 </div>
             </a>
 
-            <!-- Poesia → id_genero=6 -->
             <a href="libros.php?genero=6" class="book-card">
                 <div class="book-image-wrap">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZnFxTr-pSLQ-EHoK1tTP8f5evl4RbJeaTzA&s" alt="Poesia" class="book-image">
                 </div>
                 <div class="book-info">
-                    <h3 class="book-name">Poesia</h3>
+                    <h3 class="book-name">Poesía</h3>
                 </div>
             </a>
-
         </div>
 
         <h2 class="section-label">Por qué elegirnos</h2>
@@ -137,7 +216,6 @@ session_start();
         </div>
     </main>
 
-    <!-- CART MODAL -->
     <div class="cart-modal" id="cartModal">
         <div class="cart-header">
             <h2>Tu Carrito</h2>
@@ -160,10 +238,16 @@ session_start();
     </footer>
 
     <script>
+        const usuarioLogueado = <?= isset($_SESSION['usuario_id']) ? 'true' : 'false' ?>;
         let cart = [];
         let total = 0;
 
         function addToCart(name, price) {
+            if(!usuarioLogueado) {
+                alert("Debes iniciar sesión para comprar.");
+                window.location.href = 'login.html';
+                return;
+            }
             cart.push({ name, price });
             total += price;
             document.getElementById('cart-count').textContent = cart.length;
@@ -190,10 +274,6 @@ session_start();
             document.getElementById('cartModal').classList.toggle('open');
         }
 
-      function showLogin() {
-    window.location.href ='login.html';
-}
-
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.textContent = msg;
@@ -201,7 +281,5 @@ session_start();
             setTimeout(() => t.classList.remove('show'), 2500);
         }
     </script>
-
 </body>
 </html>
-
