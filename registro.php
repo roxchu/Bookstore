@@ -11,15 +11,49 @@ $direccion = trim($_POST['direccion'] ?? '');
 
 // Validación mínima de campos
 if ($nombre === '' || $apellido === '' || $user === '' || $pass === '' || $rpass === '' || $email === '' || $telefono === '' || $direccion === '') {
-    echo "Por favor, complete todos los campos";
+    $validationOutput = array("type" => "error", "ack" => "Por favor, complete todos los campos.");
+    echo json_encode($validationOutput);
     exit;
 }
 
-if ($pass !== $rpass) {
-    echo "Las contraseñas no coinciden";
+// Validación adicional para email (ejemplo básico)
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $validationOutput = array("type" => "error", "ack" => "El email no es válido.");
+    echo json_encode($validationOutput);
     exit;
 }
 
+// Validación de contraseña
+$passwordError = "";
+if (!empty($_POST["pass"]) && !empty($_POST["rpass"])) {
+    $pass = htmlspecialchars($_POST["pass"]);
+    $rpass = htmlspecialchars($_POST["rpass"]);
+    if ($pass != $rpass) {
+        $passwordError .= "Las contraseñas no coinciden. \n";
+    }
+    if (strlen($pass) < 8) {  // Corregido: < 8 en lugar de <= 8
+        $passwordError .= "La contraseña debe tener al menos 8 caracteres. \n";
+    }
+    if (!preg_match("#[0-9]+#", $pass)) {
+        $passwordError .= "La contraseña debe tener al menos un número. (0-9) \n";
+    }
+    if (!preg_match("#[A-Z]+#", $pass)) {
+        $passwordError .= "La contraseña debe tener al menos una mayúscula. (A-Z)\n";
+    }
+    if (!preg_match("#[a-z]+#", $pass)) {
+        $passwordError .= "La contraseña debe tener al menos una minúscula. (a-z) \n";
+    }
+} else {
+    $passwordError .= "Ingrese la contraseña y confírmela. \n";
+}
+
+if (!empty($passwordError)) {
+    $validationOutput = array("type" => "error", "ack" => nl2br($passwordError));
+    echo json_encode($validationOutput);
+    exit;
+}
+
+// Si todo es válido, proceder con el registro
 require_once 'conexion.php';
 
 // Hashear contraseña usando password_hash()
@@ -34,17 +68,19 @@ $rol_id = 3;  // Valor por defecto para Cliente
 $stmt = $mysqli->prepare("INSERT INTO usuarios (realname, username, pass, email, telefono, direccion, rol_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
 if (!$stmt) {
     // Mostrar el error real de MySQL para ayudar en el debugging.
-    http_response_code(500);
-    echo "Error en la base de datos: " . $mysqli->error;
+    $validationOutput = array("type" => "error", "ack" => "Error en la base de datos: " . $mysqli->error);
+    echo json_encode($validationOutput);
     exit;
 }
 
 $stmt->bind_param("ssssssi", $nombre_apellido, $user, $passHash, $email, $telefono, $direccion, $rol_id);
 
 if ($stmt->execute()) {
-    echo "Usuario registrado con éxito";
+    $validationOutput = array("type" => "success", "ack" => "Usuario registrado con éxito.");
+    echo json_encode($validationOutput);
 } else {
-    echo "No se pudo registrar el usuario";
+    $validationOutput = array("type" => "error", "ack" => "No se pudo registrar el usuario: " . $stmt->error);
+    echo json_encode($validationOutput);
 }
 
 $stmt->close();
