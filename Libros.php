@@ -473,15 +473,26 @@ $generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
     }
 
     function renderCart() {
-        const container = document.getElementById('cartItems');
-        container.innerHTML = cart.map(item => `
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:0.9rem;">
-                <span>${item.name}</span>
-                <span>$${item.price.toFixed(2)}</span>
+    const container = document.getElementById('cartItems');
+    
+    if (cart.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#888; margin-top:2rem;">El carrito está vacío</p>`;
+    } else {
+        container.innerHTML = cart.map((item, index) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:0.9rem; border-bottom:1px solid #eee; padding-bottom:5px;">
+                <div style="flex:1;">
+                    <span style="display:block; font-weight:bold;">${item.name}</span>
+                    <span style="color:var(--green-mid);">$${item.price.toFixed(2)}</span>
+                </div>
+                <button onclick="removeFromCart(${index})" style="background: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; margin-left: 10px; font-size: 0.8rem;">
+                    ✕
+                </button>
             </div>
         `).join('');
-        document.getElementById('cartTotal').textContent = `$${total.toFixed(2)}`;
     }
+    
+    document.getElementById('cartTotal').textContent = `$${total.toFixed(2)}`;
+}
 
     function toggleCart() { document.getElementById('cartModal').classList.toggle('open'); }
 
@@ -574,6 +585,20 @@ function confirmarPedido() {
     document.getElementById('cart-count').textContent = '0';
     renderCart();
     closeInvoice();
+}
+function removeFromCart(index) {
+  
+    total -= cart[index].price;
+    
+    
+    cart.splice(index, 1);
+    
+   
+    document.getElementById('cart-count').textContent = cart.length;
+    
+  
+    renderCart();
+    showToast("Producto eliminado");
 }
 </script>
 <div class="cart-modal" id="checkoutModal">
