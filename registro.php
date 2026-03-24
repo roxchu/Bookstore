@@ -1,4 +1,7 @@
 <?php
+// Inicia sesión al principio
+session_start();
+
 // Recibe datos enviados desde el formulario
 $nombre   = trim($_POST['nombre'] ?? '');
 $apellido = trim($_POST['apellido'] ?? '');
@@ -31,7 +34,7 @@ if (!empty($_POST["pass"]) && !empty($_POST["rpass"])) {
     if ($pass != $rpass) {
         $passwordError .= "Las contraseñas no coinciden. \n";
     }
-    if (strlen($pass) < 8) {  // Corregido: < 8 en lugar de <= 8
+    if (strlen($pass) < 8) {  
         $passwordError .= "La contraseña debe tener al menos 8 caracteres. \n";
     }
     if (!preg_match("#[0-9]+#", $pass)) {
@@ -42,6 +45,9 @@ if (!empty($_POST["pass"]) && !empty($_POST["rpass"])) {
     }
     if (!preg_match("#[a-z]+#", $pass)) {
         $passwordError .= "La contraseña debe tener al menos una minúscula. (a-z) \n";
+    }
+    if (!preg_match("#[^\w]+#", $pass)) {
+        $passwordError .= "La contraseña debe tener al menos un símbolo especial. \n";
     }
 } else {
     $passwordError .= "Ingrese la contraseña y confírmela. \n";
@@ -62,8 +68,6 @@ $passHash = password_hash($pass, PASSWORD_DEFAULT);
 // Unir nombre y apellido para la columna existente
 $nombre_apellido = $nombre . ' ' . $apellido;
 
-// Nota: la base de datos importada tiene la tabla `registros`.
-// Ajustamos la consulta para coincidir con esa estructura.
 $rol_id = 3;  // Valor por defecto para Cliente
 $stmt = $mysqli->prepare("INSERT INTO usuarios (realname, username, pass, email, telefono, direccion, rol_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
 if (!$stmt) {
@@ -76,6 +80,15 @@ if (!$stmt) {
 $stmt->bind_param("ssssssi", $nombre_apellido, $user, $passHash, $email, $telefono, $direccion, $rol_id);
 
 if ($stmt->execute()) {
+    // Obtener el ID del usuario recién insertado
+    $usuario_id = $mysqli->insert_id;
+    
+    // Iniciar sesión automáticamente
+    $_SESSION['usuario_id'] = $usuario_id;
+    $_SESSION['user_id']    = $usuario_id;
+    $_SESSION['username']   = $user;
+    $_SESSION['rol_id']     = $rol_id;
+    
     $validationOutput = array("type" => "success", "ack" => "Usuario registrado con éxito.");
     echo json_encode($validationOutput);
 } else {
