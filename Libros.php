@@ -492,8 +492,12 @@ $generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
     }
     
     document.getElementById('cartTotal').textContent = `$${total.toFixed(2)}`;
-}
 
+    // Si el modal de checkout está abierto, actualizamos sus totales también
+    if(document.getElementById('checkoutModal').classList.contains('open')) {
+        actualizarTotalFinal();
+    }
+}
     function toggleCart() { document.getElementById('cartModal').classList.toggle('open'); }
 
     function showToast(msg) {
@@ -538,42 +542,66 @@ function closeCheckout() {
 }
 
 async function confirmarVentaFinal() {
-    const metodoElegido = document.querySelector('input[name="metodoPago"]:checked').value;
-    const totalFinalNum = parseFloat(document.getElementById('final-total').textContent.replace('$', ''));
+    const metodoInput = document.querySelector('input[name="metodoPago"]:checked');
+    const metodo = metodoInput ? metodoInput.value : 'efectivo';
+    
+    // Sacamos el total del texto del HTML
+    const totalTexto = document.getElementById('final-total').textContent;
+    const totalVenta = parseFloat(totalTexto.replace('$', ''));
 
-    const datosVenta = {
-        total: totalFinalNum,
-        metodo: metodoElegido,
-        items: cart 
-    };
+    if (isNaN(totalVenta) || totalVenta <= 0) {
+        alert("Error en el monto del total.");
+        return;
+    }
 
     try {
-        const respuesta = await fetch('guardar_venta.php', {
+        const response = await fetch('guardar_venta.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datosVenta)
+            body: JSON.stringify({
+                total: totalVenta, // Corregido: antes decía totalFinal
+                metodo: metodo,
+                items: cart
+            })
         });
 
-        // 🔍 PASO CLAVE: Leemos como texto para ver errores ocultos
-        const textoRespuesta = await respuesta.text();
-        console.log("DEBUG - Respuesta del servidor:", textoRespuesta);
+        const res = await response.json();
 
-        // Intentamos convertir a JSON
-        const resultado = JSON.parse(textoRespuesta);
+        if (res.success) {
+            // Cerramos el modal de pago
+            document.getElementById('checkoutModal').classList.remove('open');
 
-        if (resultado.success) {
-            alert("¡Compra exitosa!");
-            cart = []; total = 0;
+            // Rellenamos el ticket
+            const ticketHtml = `
+                <p><strong>Nro. Operación:</strong> #${res.id_factura}</p>
+                <p><strong>Fecha:</strong> ${res.compra.fecha}</p>
+                <hr style="border:none; border-top:1px dashed #ccc;">
+                <p style="margin-bottom:5px;"><strong>CLIENTE:</strong> ${res.usuario.realname}</p>
+                <p style="margin:0;"><strong>ENVÍO A:</strong> ${res.usuario.direccion}</p>
+                <p style="margin:0;"><strong>EMAIL:</strong> ${res.usuario.email}</p>
+                <hr style="border:none; border-top:1px dashed #ccc;">
+                <p><strong>PAGO:</strong> ${res.compra.metodo.toUpperCase()}</p>
+                <div style="display:flex; justify-content:space-between; font-size:1.2rem; font-weight:bold; margin-top:15px; border-top:2px solid #333; padding-top:10px;">
+                    <span>TOTAL:</span>
+                    <span>$${res.compra.total.toFixed(2)}</span>
+                </div>
+                <p style="text-align:center; margin-top:20px; font-style:italic;">¡Gracias por tu compra!</p>
+            `;
+
+            document.getElementById('ticketContent').innerHTML = ticketHtml;
+            document.getElementById('ticketModal').style.display = 'flex';
+
+            // Limpiamos todo
+            cart = [];
+            total = 0;
             document.getElementById('cart-count').textContent = '0';
             renderCart();
-            closeCheckout();
         } else {
-            alert("Error del servidor: " + resultado.error);
+            alert("Hubo un problema: " + res.error);
         }
-
-    } catch (e) {
-        console.error("Error detallado:", e);
-        alert("Error de conexión. Abrí la consola (F12) para ver la respuesta real del servidor.");
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Error de conexión con el servidor.");
     }
 }
 
@@ -612,7 +640,7 @@ function removeFromCart(index) {
         <div id="checkoutSummary" style="margin:15px 0; font-size:0.9rem;"></div>
 
         <h3 style="color:var(--green-mid); border-bottom:1px solid var(--gold); padding-bottom:10px; margin-top:20px;">2. Método de Pago</h3>
-        <div style="margin-top:15px;">
+        <div style="margin-top:15px;" class="metodos-pagos">
             <label style="display:block; margin-bottom:10px; cursor:pointer;">
                 <input type="radio" name="metodoPago" value="transferencia" checked onchange="actualizarTotalFinal()"> 
                 🏦 Transferencia (10% OFF)
@@ -639,6 +667,22 @@ function removeFromCart(index) {
         </div>
         <button onclick="confirmarVentaFinal()" style="width:100%; background:var(--green-deep); color:white; border:none; padding:15px; margin-top:15px; cursor:pointer; font-weight:bold; border-radius:5px;">
             CONFIRMAR Y PAGAR
+        </button>
+    </div>
+</div>
+<div id="ticketModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:5000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:30px; border-radius:15px; max-width:450px; width:90%; font-family: 'Courier New', Courier, monospace; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        
+        <div style="text-align:center; border-bottom:2px dashed #333; padding-bottom:15px;">
+            <h2 style="margin:0; color:#1a3d2b;">BOOKSTORE</h2>
+            <p style="margin:5px 0; font-size:0.9rem;">Comprobante de Pago</p>
+        </div>
+
+        <div id="ticketContent" style="margin-top:20px; font-size:0.95rem; color:#333;">
+            </div>
+
+        <button onclick="window.location.href='index.php'" style="width:100%; background:#1a3d2b; color:white; border:none; padding:12px; margin-top:25px; cursor:pointer; border-radius:8px; font-weight:bold; font-family: 'Lato', sans-serif;">
+            LISTO, VOLVER AL INICIO
         </button>
     </div>
 </div>
