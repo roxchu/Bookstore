@@ -13,15 +13,32 @@ $telefono = trim($_POST['telefono'] ?? '');
 $direccion = trim($_POST['direccion'] ?? '');
 
 // Validación mínima de campos
-if ($nombre === '' || $apellido === '' || $user === '' || $pass === '' || $rpass === '' || $email === '' || $telefono === '' || $direccion === '') {
-    $validationOutput = array("type" => "error", "ack" => "Por favor, complete todos los campos.");
-    echo json_encode($validationOutput);
-    exit;
+$requiredFields = [
+    'nombre' => 'nombre',
+    'apellido' => 'apellido',
+    'user' => 'username',
+    'pass' => 'password',
+    'rpass' => 'rpassword',
+    'email' => 'email',
+    'telefono' => 'telefono',
+    'direccion' => 'direccion'
+];
+
+foreach ($requiredFields as $postKey => $fieldId) {
+    if (trim($_POST[$postKey] ?? '') === '') {
+        $validationOutput = array(
+            "type" => "error",
+            "ack" => "Por favor, complete el campo requerido.",
+            "field" => $fieldId
+        );
+        echo json_encode($validationOutput);
+        exit;
+    }
 }
 
 // Validación adicional para email (ejemplo básico)
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $validationOutput = array("type" => "error", "ack" => "El email no es válido.");
+    $validationOutput = array("type" => "error", "ack" => "El email no es válido.", "field" => "email");
     echo json_encode($validationOutput);
     exit;
 }
@@ -54,7 +71,11 @@ if (!empty($_POST["pass"]) && !empty($_POST["rpass"])) {
 }
 
 if (!empty($passwordError)) {
-    $validationOutput = array("type" => "error", "ack" => nl2br($passwordError));
+    $validationOutput = array(
+        "type" => "error",
+        "ack" => trim($passwordError),
+        "field" => array("password", "rpassword")
+    );
     echo json_encode($validationOutput);
     exit;
 }

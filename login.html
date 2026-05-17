@@ -194,6 +194,75 @@
             min-height: 1.2rem;
         }
 
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="password"] {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1.5px solid var(--green-pale);
+            border-radius: 3px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            background: white;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        input.field-invalid {
+            border-color: #e74c3c;
+            background: #fff5f5;
+        }
+
+        label .info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.15rem;
+            height: 1.15rem;
+            margin-left: 0.45rem;
+            border-radius: 50%;
+            background: var(--green-pale);
+            color: var(--green-mid);
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid var(--green-accent);
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        label .info-icon:hover {
+            background: var(--green-accent);
+            color: var(--cream);
+            transform: translateY(-1px);
+        }
+
+        .password-rules {
+            display: none;
+            margin-top: 0.85rem;
+            padding: 0.85rem 1rem;
+            background: #f7fdf6;
+            border: 1px solid var(--green-pale);
+            border-radius: 4px;
+            color: #2b5f40;
+            font-size: 0.84rem;
+            line-height: 1.5;
+        }
+
+        .password-rules.visible {
+            display: block;
+        }
+
+        .password-rules ul {
+            margin: 0.5rem 0 0 1.1rem;
+            padding-left: 0.75rem;
+        }
+
+        .password-rules li {
+            margin-bottom: 0.35rem;
+        }
+
         .form-section { display: none; }
         .form-section.active { display: block; }
 
@@ -341,38 +410,57 @@
             <div class="form-group">
                 <label for="nombre">Nombre</label>
                 <input type="text" id="nombre" autocomplete="given-name" placeholder="Juan">
+                <div id="error-nombre" class="field-error"></div>
             </div>
             <div class="form-group">
                 <label for="apellido">Apellido</label>
                 <input type="text" id="apellido" autocomplete="family-name" placeholder="García">
+                <div id="error-apellido" class="field-error"></div>
             </div>
             <div class="form-group">
                 <label for="username">Usuario</label>
                 <input type="text" id="username" autocomplete="username" placeholder="juan.garcia">
+                <div id="error-username" class="field-error"></div>
             </div>
             <div class="form-group">
-                <label for="password">Contraseña</label>
+                <label for="password">Contraseña
+                    <span class="info-icon" onclick="togglePasswordRules()" title="Ver reglas de contraseña">i</span>
+                </label>
                 <input type="password" id="password" autocomplete="new-password" placeholder="••••••••">
+                <div class="password-rules" id="password-rules">
+                    <p>La contraseña debe tener:</p>
+                    <ul>
+                        <li>Al menos 8 caracteres</li>
+                        <li>Una letra mayúscula</li>
+                        <li>Una letra minúscula</li>
+                        <li>Un número</li>
+                        <li>Un símbolo especial</li>
+                    </ul>
+                </div>
                 <small><label><input type="checkbox" id="togglePassword"> Mostrar contraseña</label></small>
-                <div id="password-error" class="field-error"></div>
+                <div id="error-password" class="field-error"></div>
             </div>
             <div class="form-group">
                 <label for="rpassword">Confirmar contraseña</label>
                 <input type="password" id="rpassword" autocomplete="new-password" placeholder="••••••••">
+                <div id="error-rpassword" class="field-error"></div>
             </div>
             <div class="form-group">
                 <label for="telefono">Teléfono</label>
                 <input type="tel" id="telefono" autocomplete="tel" placeholder="+54 11 0000-0000">
+                <div id="error-telefono" class="field-error"></div>
             </div>
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" autocomplete="email" placeholder="tu@email.com">
+                <div id="error-email" class="field-error"></div>
             </div>
             <div class="form-group">
                 <label for="direccion">Dirección</label>
                 <input type="text" id="direccion" autocomplete="street-address" placeholder="Av. Corrientes 1234, CABA">
+                <div id="error-direccion" class="field-error"></div>
             </div>
-            <button class="submit-btn" onclick="handleRegister()">Crear Cuenta</button>
+            <button type="button" class="submit-btn" onclick="handleRegister()">Crear Cuenta</button>
         </div>
 
         <div class="form-footer">
@@ -390,9 +478,15 @@
             clearAlerts();
         }
 
+        function renderMessage(msg) {
+            return msg
+                .replace(/<br\s*\/?>/gi, '<br>')
+                .replace(/\r?\n/g, '<br>');
+        }
+
         function showError(msg) {
             const el = document.getElementById('alert-error');
-            el.textContent = '⚠️ ' + msg;
+            el.innerHTML = '⚠️ ' + renderMessage(msg);
             el.classList.add('show');
             document.getElementById('alert-success').classList.remove('show');
         }
@@ -405,19 +499,48 @@
             clearFieldError();
         }
 
-        function showFieldError(msg) {
-            document.getElementById('password-error').textContent = msg;
-            document.getElementById('alert-error').classList.remove('show');
+        function showFieldError(msg, fieldIds = []) {
+            clearFieldError();
+            if (!Array.isArray(fieldIds)) {
+                fieldIds = fieldIds ? [fieldIds] : [];
+            }
+
+            if (fieldIds.length === 0) {
+                const el = document.getElementById('alert-error');
+                el.innerHTML = '⚠️ ' + renderMessage(msg);
+                el.classList.add('show');
+                return;
+            }
+
+            fieldIds.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.classList.add('field-invalid');
+                }
+                const errorEl = document.getElementById('error-' + id);
+                if (errorEl) {
+                    errorEl.innerHTML = renderMessage(msg);
+                }
+            });
         }
 
         function clearFieldError() {
-            document.getElementById('password-error').textContent = '';
+            document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+            document.querySelectorAll('.field-invalid').forEach(el => el.classList.remove('field-invalid'));
         }
 
         function clearAlerts() {
             document.getElementById('alert-error').classList.remove('show');
             document.getElementById('alert-success').classList.remove('show');
             clearFieldError();
+        }
+
+        function togglePasswordRules() {
+            document.getElementById('password-rules').classList.toggle('visible');
+        }
+
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         }
 
         function handleLogin() {
@@ -462,13 +585,31 @@
             const email = document.getElementById('email').value.trim();
             const direccion = document.getElementById('direccion').value.trim();
 
-            if (!nombre || !apellido || !username || !password || !rpassword || !telefono || !email || !direccion) {
-                showFieldError('Hay algo incompleto, revisá tus datos.');
+            const requiredFields = [
+                { id: 'nombre', message: 'Ingrese su nombre.' },
+                { id: 'apellido', message: 'Ingrese su apellido.' },
+                { id: 'username', message: 'Ingrese su usuario.' },
+                { id: 'password', message: 'Ingrese su contraseña.' },
+                { id: 'rpassword', message: 'Confirme su contraseña.' },
+                { id: 'telefono', message: 'Ingrese su teléfono.' },
+                { id: 'email', message: 'Ingrese su email.' },
+                { id: 'direccion', message: 'Ingrese su dirección.' }
+            ];
+
+            for (const field of requiredFields) {
+                if (!document.getElementById(field.id).value.trim()) {
+                    showFieldError(field.message, field.id);
+                    return;
+                }
+            }
+
+            if (!validateEmail(email)) {
+                showFieldError('El email no es válido.', 'email');
                 return;
             }
 
             if (password !== rpassword) {
-                showFieldError('Las contraseñas no coinciden.');
+                showFieldError('Las contraseñas no coinciden.', ['password', 'rpassword']);
                 return;
             }
 
@@ -493,7 +634,7 @@
                     showSuccess('Registro correcto. Redirigiendo...');
                     setTimeout(() => window.location.href = 'index.php', 800);
                 } else {
-                    showFieldError('Hay algo no completado en la contraseña.');
+                    showFieldError(result.ack || 'Hubo un error en el registro.', result.field || result.fields || []);
                 }
             } catch (error) {
                 showFieldError('Error de conexión: ' + error.message);
