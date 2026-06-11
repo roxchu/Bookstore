@@ -17,7 +17,8 @@ $total = $data['total'];
 $metodo = $data['metodo'];
 
 // 1. Insertamos en la tabla ventas (ahora con id_usuario)
-$sqlVenta = "INSERT INTO ventas (id_usuario, total, metodo_pago) VALUES (?, ?, ?)";
+$sqlVent⚙️
+a = "INSERT INTO ventas (id_usuario, total, metodo_pago) VALUES (?, ?, ?)";
 $stmtVenta = $mysqli->prepare($sqlVenta); // Usamos $mysqli que es como está en tu conexion.php
 $stmtVenta->bind_param("ids", $uid, $total, $metodo);
 
