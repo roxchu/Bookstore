@@ -1,48 +1,42 @@
 <?php
-require_once 'conexion.php';
+require_once '../../config/conexion.php';
+require_once '../../DAO/UsuarioDAO.php';
+
 header('Content-Type: application/json; charset=utf-8');
 
+// ── Validación del email (se queda en la vista) ────────────────
 $email = trim($_POST['email'] ?? '');
 
 if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    echo json_encode(['success' => false, 'message' => 'Por favor ingresa un email válido.']);
+    echo json_encode(['success' => false, 'message' => 'Por favor ingresá un email válido.']);
     exit;
 }
 
-$stmt = $mysqli->prepare("SELECT id, username, pass FROM usuarios WHERE email = ?");
-$stmt->bind_param('s', $email);
-$stmt->execute();
-$result = $stmt->get_result();
+// ── Llamada al DAO ─────────────────────────────────────────────
+$dao     = new UsuarioDAO($mysqli);
+$usuario = $dao->getByEmail($email);
 
-if ($result->num_rows !== 1) {
+if ($usuario === null) {
     echo json_encode(['success' => false, 'message' => 'No se encontró una cuenta con ese email.']);
-    $stmt->close();
-    $mysqli->close();
     exit;
 }
 
-$user = $result->fetch_assoc();
-$stmt->close();
+// ── Genera contraseña temporal y la actualiza (vista coordina) ─
+$passTemp  = bin2hex(random_bytes(5)); // ej: "a3f9c12b4e"
+$dao->actualizarPassword($usuario->getId(), $passTemp);
 
-// Envío de email con la contraseña (hash) tal cual está en la base de datos
-$to = $email;
+// ── Envío de email (lógica de presentación, se queda en la vista)
+$to      = $email;
 $subject = 'Recuperación de contraseña - Bookstore';
-$message = "Hola {$user['username']},\n\n" .
-           "Se solicitó recuperar tu contraseña. En la base de datos está guardada como:\n\n" .
-           "{$user['pass']}\n\n" .
-           "Ten en cuenta que es una contraseña hasheada y no puede usarse tal cual en login.\n\n" .
-           "Saludos.\n";
-$headers = 'From: no-reply@localhost' . "\r\n" .
-           'Reply-To: no-reply@localhost' . "\r\n" .
-           'X-Mailer: PHP/' . phpversion();
+$message = "Hola {$usuario->getUserName()},\n\n" .
+           "Tu contraseña temporal es: {$passTemp}\n\n" .
+           "Por favor ingresá con ella y cambiala cuanto antes.\n\n" .
+           "Saludos,\nBookstore";
+$headers = 'From: no-reply@localhost' . "\r\n" . 'X-Mailer: PHP/' . phpversion();
 
-$mailSent = mail($to, $subject, $message, $headers);
-
-if ($mailSent) {
-    echo json_encode(['success' => true, 'message' => 'Te hemos enviado un email con nueva contraseña temporal. Revisá tu bandeja.']);
+if (mail($to, $subject, $message, $headers)) {
+    echo json_encode(['success' => true, 'message' => 'Te enviamos una contraseña temporal al email.']);
 } else {
-    echo json_encode(['success' => false, 'message' => 'No se pudo enviar el correo. Volvé a intentar más tarde.']);
+    echo json_encode(['success' => false, 'message' => 'No se pudo enviar el correo. Intentá más tarde.']);
 }
-
-$mysqli->close();
 ?>

@@ -1,122 +1,82 @@
 <?php
-// Inicia sesión al principio
 session_start();
 
-// Recibe datos enviados desde el formulario
-$nombre   = trim($_POST['nombre'] ?? '');
-$apellido = trim($_POST['apellido'] ?? '');
-$user     = trim($_POST['user'] ?? '');
-$pass     = $_POST['pass'] ?? '';
-$rpass    = $_POST['rpass'] ?? '';
-$email    = trim($_POST['email'] ?? '');
-$telefono = trim($_POST['telefono'] ?? '');
+require_once '../../config/conexion.php';
+require_once '../../DAO/UsuarioDAO.php';
+require_once '../../models/Usuario.php';
+
+header('Content-Type: application/json; charset=utf-8');
+
+// ── Recibe datos del formulario ────────────────────────────────
+$nombre    = trim($_POST['nombre']    ?? '');
+$apellido  = trim($_POST['apellido']  ?? '');
+$user      = trim($_POST['user']      ?? '');
+$pass      = $_POST['pass']           ?? '';
+$rpass     = $_POST['rpass']          ?? '';
+$email     = trim($_POST['email']     ?? '');
+$telefono  = trim($_POST['telefono']  ?? '');
 $direccion = trim($_POST['direccion'] ?? '');
 
-// Validación mínima de campos
+// ── Validación de campos vacíos (se queda en la vista) ────────
 $requiredFields = [
-    'nombre' => 'nombre',
+    'nombre'   => 'nombre',
     'apellido' => 'apellido',
-    'user' => 'username',
-    'pass' => 'password',
-    'rpass' => 'rpassword',
-    'email' => 'email',
+    'user'     => 'username',
+    'pass'     => 'password',
+    'rpass'    => 'rpassword',
+    'email'    => 'email',
     'telefono' => 'telefono',
-    'direccion' => 'direccion'
+    'direccion'=> 'direccion'
 ];
 
 foreach ($requiredFields as $postKey => $fieldId) {
     if (trim($_POST[$postKey] ?? '') === '') {
-        $validationOutput = array(
-            "type" => "error",
-            "ack" => "Por favor, complete el campo requerido.",
-            "field" => $fieldId
-        );
-        echo json_encode($validationOutput);
+        echo json_encode(["type" => "error", "ack" => "Por favor, complete el campo requerido.", "field" => $fieldId]);
         exit;
     }
 }
 
-// Validación adicional para email (ejemplo básico)
+// ── Validación de email (se queda en la vista) ─────────────────
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $validationOutput = array("type" => "error", "ack" => "El email no es válido.", "field" => "email");
-    echo json_encode($validationOutput);
+    echo json_encode(["type" => "error", "ack" => "El email no es válido.", "field" => "email"]);
     exit;
 }
 
-// Validación de contraseña
+// ── Validación de contraseña (se queda en la vista) ───────────
+$pass  = htmlspecialchars($pass);
+$rpass = htmlspecialchars($rpass);
 $passwordError = "";
-if (!empty($_POST["pass"]) && !empty($_POST["rpass"])) {
-    $pass = htmlspecialchars($_POST["pass"]);
-    $rpass = htmlspecialchars($_POST["rpass"]);
-    if ($pass != $rpass) {
-        $passwordError .= "Las contraseñas no coinciden. \n";
-    }
-    if (strlen($pass) < 8) {  
-        $passwordError .= "La contraseña debe tener al menos 8 caracteres. \n";
-    }
-    if (!preg_match("#[0-9]+#", $pass)) {
-        $passwordError .= "La contraseña debe tener al menos un número. (0-9) \n";
-    }
-    if (!preg_match("#[A-Z]+#", $pass)) {
-        $passwordError .= "La contraseña debe tener al menos una mayúscula. (A-Z)\n";
-    }
-    if (!preg_match("#[a-z]+#", $pass)) {
-        $passwordError .= "La contraseña debe tener al menos una minúscula. (a-z) \n";
-    }
-    if (!preg_match("#[^\w]+#", $pass)) {
-        $passwordError .= "La contraseña debe tener al menos un símbolo especial. \n";
-    }
-} else {
-    $passwordError .= "Ingrese la contraseña y confírmela. \n";
-}
+
+if ($pass !== $rpass)                        $passwordError .= "Las contraseñas no coinciden.\n";
+if (strlen($pass) < 8)                       $passwordError .= "La contraseña debe tener al menos 8 caracteres.\n";
+if (!preg_match("#[0-9]+#", $pass))          $passwordError .= "La contraseña debe tener al menos un número.\n";
+if (!preg_match("#[A-Z]+#", $pass))          $passwordError .= "La contraseña debe tener al menos una mayúscula.\n";
+if (!preg_match("#[a-z]+#", $pass))          $passwordError .= "La contraseña debe tener al menos una minúscula.\n";
+if (!preg_match("#[^\w]+#", $pass))          $passwordError .= "La contraseña debe tener al menos un símbolo especial.\n";
 
 if (!empty($passwordError)) {
-    $validationOutput = array(
-        "type" => "error",
-        "ack" => trim($passwordError),
-        "field" => array("password", "rpassword")
-    );
-    echo json_encode($validationOutput);
+    echo json_encode(["type" => "error", "ack" => trim($passwordError), "field" => ["password", "rpassword"]]);
     exit;
 }
 
-// Si todo es válido, proceder con el registro
-require_once 'conexion.php';
-
-// Hashear contraseña usando password_hash()
-$passHash = password_hash($pass, PASSWORD_DEFAULT);
-
-// Unir nombre y apellido para la columna existente
+// ── Llamada al DAO ─────────────────────────────────────────────
 $nombre_apellido = $nombre . ' ' . $apellido;
 
-$rol_id = 3;  // Valor por defecto para Cliente
-$stmt = $mysqli->prepare("INSERT INTO usuarios (realname, username, pass, email, telefono, direccion, rol_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-if (!$stmt) {
-    // Mostrar el error real de MySQL para ayudar en el debugging.
-    $validationOutput = array("type" => "error", "ack" => "Error en la base de datos: " . $mysqli->error);
-    echo json_encode($validationOutput);
-    exit;
-}
+// El id va en 0 porque es un usuario nuevo (la BD asigna el id real)
+$usuario = new Usuario(0, $nombre_apellido, $user, $pass, $email, $telefono, $direccion, 3);
 
-$stmt->bind_param("ssssssi", $nombre_apellido, $user, $passHash, $email, $telefono, $direccion, $rol_id);
+$dao = new UsuarioDAO($mysqli);
 
-if ($stmt->execute()) {
-    // Obtener el ID del usuario recién insertado
-    $usuario_id = $mysqli->insert_id;
-    
-    // Iniciar sesión automáticamente
-    $_SESSION['usuario_id'] = $usuario_id;
-    $_SESSION['user_id']    = $usuario_id;
-    $_SESSION['username']   = $user;
-    $_SESSION['rol_id']     = $rol_id;
-    
-    $validationOutput = array("type" => "success", "ack" => "Usuario registrado con éxito.");
-    echo json_encode($validationOutput);
+if ($dao->registrarUsuario($usuario)) {
+    // ── Sesión automática tras registro (se queda en la vista) ─
+    $usuarioCreado = $dao->loginUsuario($user);
+    $_SESSION['usuario_id'] = $usuarioCreado->getId();
+    $_SESSION['user_id']    = $usuarioCreado->getId();
+    $_SESSION['username']   = $usuarioCreado->getUserName();
+    $_SESSION['rol_id']     = $usuarioCreado->getIdRol();
+
+    echo json_encode(["type" => "success", "ack" => "Usuario registrado con éxito."]);
 } else {
-    $validationOutput = array("type" => "error", "ack" => "No se pudo registrar el usuario: " . $stmt->error);
-    echo json_encode($validationOutput);
+    echo json_encode(["type" => "error", "ack" => "No se pudo registrar el usuario."]);
 }
-
-$stmt->close();
-$mysqli->close();
 ?>

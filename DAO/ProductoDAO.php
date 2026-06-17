@@ -1,17 +1,15 @@
 <?php
-
-require_once __DIR__ . '/../models/Producto.php';
+require_once __DIR__ . '/../models/Productos.php';
 
 class ProductoDAO {
 
     private mysqli $conexion;
 
-    //constructor
     public function __construct(mysqli $conexion) {
         $this->conexion = $conexion;
     }
 
-    // convierte una fila en el objeto producto 
+    // convierte una fila en objeto Producto
     private function hidratar(array $fila): Producto {
         return new Producto(
             (int)   $fila['id'],
@@ -25,12 +23,11 @@ class ProductoDAO {
         );
     }
 
-    // obtiene todos los productos
+    // trae todos los productos
     public function getAll(): array {
         $resultado = $this->conexion->query(
             "SELECT * FROM producto ORDER BY id DESC"
         );
-
         $productos = [];
         while ($fila = $resultado->fetch_assoc()) {
             $productos[] = $this->hidratar($fila);
@@ -38,7 +35,7 @@ class ProductoDAO {
         return $productos;
     }
 
-    // filtra por genero 
+    // filtra por género
     public function getByGenero(int $idGenero): array {
         $stmt = $this->conexion->prepare(
             "SELECT * FROM producto WHERE id_genero = ? ORDER BY id DESC"
@@ -73,10 +70,9 @@ class ProductoDAO {
         return $productos;
     }
 
-    // inserta id si no tiene, actualiza si tiene 
+    // INSERT si id es 0, UPDATE si tiene id
     public function save(Producto $producto): bool {
         if ($producto->getId() === 0) {
-            // INSERT
             $stmt = $this->conexion->prepare(
                 "INSERT INTO producto (nombre, autor, detalle, precio, stock, id_genero, imagen)
                  VALUES (?, ?, ?, ?, ?, ?, ?)"
@@ -88,10 +84,9 @@ class ProductoDAO {
             $stock    = $producto->getStock();
             $idGenero = $producto->getIdGenero();
             $imagen   = $producto->getImagen();
-
-            $stmt->bind_param("sssdiis", $nombre, $autor, $detalle, $precio, $stock, $idGenero, $imagen);
+            // s=string d=double(float) i=int
+            $stmt->bind_param("sssdiss", $nombre, $autor, $detalle, $precio, $stock, $idGenero, $imagen);
         } else {
-            // UPDATE
             $stmt = $this->conexion->prepare(
                 "UPDATE producto SET nombre=?, autor=?, detalle=?, precio=?, stock=?, id_genero=?, imagen=?
                  WHERE id=?"
@@ -104,7 +99,7 @@ class ProductoDAO {
             $idGenero = $producto->getIdGenero();
             $imagen   = $producto->getImagen();
             $id       = $producto->getId();
-
+            // s=string d=double(float) i=int
             $stmt->bind_param("sssdisi", $nombre, $autor, $detalle, $precio, $stock, $idGenero, $imagen, $id);
         }
 

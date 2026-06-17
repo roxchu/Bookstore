@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear cuenta — Bookstore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green-deep:   #1a3d2b;
+            --green-mid:    #2d6a4f;
+            --green-accent: #52b788;
+            --green-light:  #b7e4c7;
+            --green-pale:   #d8f3dc;
+            --cream:        #f8f5ef;
+            --gold:         #c9a84c;
+            --text-dark:    #1a2e1e;
+            --error:        #c0392b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(160deg, var(--green-deep) 0%, var(--green-mid) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── HEADER ─────────────────────────────────────────── */
+        header {
+            background: var(--green-deep);
+            padding: 1rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--gold);
+        }
+
+        .logo { text-decoration: none; }
+        .logo-main {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--cream);
+            letter-spacing: 2px;
+            display: block;
+        }
+        .logo-sub {
+            font-size: 0.6rem;
+            letter-spacing: 5px;
+            color: var(--gold);
+            text-transform: uppercase;
+        }
+
+        .header-link {
+            color: var(--green-light);
+            text-decoration: none;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+        .header-link:hover { border-color: var(--gold); color: var(--gold); }
+
+        /* ── MAIN WRAPPER ────────────────────────────────────── */
+        .page-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.25);
+            width: 100%;
+            max-width: 460px;
+            overflow: hidden;
+        }
+
+        /* ── PROGRESS BAR ────────────────────────────────────── */
+        .progress-header {
+            background: var(--green-deep);
+            padding: 1.5rem 2rem 1rem;
+        }
+
+        .progress-header h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--cream);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .steps-track {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .step-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.5);
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .step-dot.active {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--green-deep);
+        }
+
+        .step-dot.done {
+            background: var(--green-accent);
+            border-color: var(--green-accent);
+            color: white;
+        }
+
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: rgba(255,255,255,0.15);
+            transition: background 0.3s ease;
+        }
+
+        .step-line.done { background: var(--green-accent); }
+
+        .step-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+        }
+
+        .step-label {
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+            flex: 1;
+            text-align: center;
+            transition: color 0.3s;
+        }
+        .step-label:first-child { text-align: left; }
+        .step-label:last-child  { text-align: right; }
+        .step-label.active { color: var(--gold); }
+        .step-label.done   { color: var(--green-light); }
+
+        /* ── FORM BODY ───────────────────────────────────────── */
+        .card-body { padding: 2rem; }
+
+        .step-panel { display: none; }
+        .step-panel.active { display: block; }
+
+        .step-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            color: var(--green-deep);
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 2px solid var(--green-pale);
+        }
+
+        .form-group { margin-bottom: 1rem; }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-dark);
+            margin-bottom: 0.35rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.7rem 0.9rem;
+            border: 1.5px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--green-accent); }
+        input.error { border-color: var(--error); }
+
+        .field-error {
+            font-size: 0.78rem;
+            color: var(--error);
+            margin-top: 0.3rem;
+            min-height: 1rem;
+        }
+
+        /* ── BOTONES ─────────────────────────────────────────── */
+        .btn-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-primary {
+            background: var(--green-deep);
+            color: white;
+        }
+        .btn-primary:hover { background: var(--green-mid); }
+
+        .btn-secondary {
+            background: var(--green-pale);
+            color: var(--green-deep);
+        }
+        .btn-secondary:hover { background: var(--green-light); }
+
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ── SUCCESS ─────────────────────────────────────────── */
+        .success-panel {
+            display: none;
+            text-align: center;
+            padding: 2rem 0 1rem;
+        }
+
+        .success-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .success-panel h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--green-deep);
+            margin-bottom: 0.5rem;
+        }
+
+        .success-panel p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-error {
+            background: #fdf0ef;
+            border: 1px solid #f5c6c2;
+            border-radius: 4px;
+            color: var(--error);
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        /* ── FOOTER ──────────────────────────────────────────── */
+        footer {
+            background: var(--green-deep);
+            color: var(--green-light);
+            text-align: center;
+            padding: 1.2rem 2rem;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            border-top: 3px solid var(--gold);
+        }
+
+        footer span { color: var(--gold); }
+
+        .login-link {
+            margin-top: 1.2rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .login-link a {
+            color: var(--green-mid);
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .login-link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="../index.php" class="logo">
+        <span class="logo-main">Bookstore</span>
+        <span class="logo-sub">Tu librería de confianza</span>
+    </a>
+    <a href="login.html" class="header-link">¿Ya tenés cuenta? Ingresá →</a>
+</header>
+
+<div class="page-body">
+    <div class="card">
+
+        <!-- Barra de progreso -->
+        <div class="progress-header">
+            <h1>Crear cuenta</h1>
+            <div class="steps-track">
+                <div class="step-dot active" id="dot-1">1</div>
+                <div class="step-line" id="line-1"></div>
+                <div class="step-dot" id="dot-2">2</div>
+                <div class="step-line" id="line-2"></div>
+                <div class="step-dot" id="dot-3">3</div>
+            </div>
+            <div class="step-labels">
+                <span class="step-label active" id="label-1">Datos personales</span>
+                <span class="step-label" id="label-2">Acceso</span>
+                <span class="step-label" id="label-3">Contacto</span>
+            </div>
+        </div>
+
+        <div class="card-body">
+
+            <div id="globalError" class="alert-error"></div>
+
+            <!-- PASO 1: Nombre y Apellido -->
+            <div class="step-panel active" id="step-1">
+                <p class="step-title">¿Cómo te llamás?</p>
+
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" placeholder="Ej: María">
+                    <div class="field-error" id="err-nombre"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="apellido">Apellido</label>
+                    <input type="text" id="apellido" placeholder="Ej: González">
+                    <div class="field-error" id="err-apellido"></div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="goTo(2)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 2: Username y contraseñas -->
+            <div class="step-panel" id="step-2">
+                <p class="step-title">Elegí tu usuario y contraseña</p>
+
+                <div class="form-group">
+                    <label for="user">Nombre de usuario</label>
+                    <input type="text" id="user" placeholder="Ej: mariag99">
+                    <div class="field-error" id="err-user"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="pass">
+                        Contraseña
+                        <span id="info-icon" onclick="togglePasswordRules()" title="Ver requisitos" style="display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; background:var(--green-accent); color:white; border-radius:50%; font-size:0.65rem; font-weight:700; cursor:pointer; margin-left:6px;">i</span>
+                    </label>
+                    <div id="password-rules" style="display:none; background:var(--green-pale); border-left:3px solid var(--green-accent); border-radius:4px; padding:0.6rem 0.9rem; font-size:0.8rem; color:var(--text-dark); margin-bottom:0.5rem;">
+                        <p style="font-weight:700; margin-bottom:0.3rem;">La contraseña debe tener:</p>
+                        <ul style="padding-left:1.2rem; line-height:1.8;">
+                            <li>Al menos 8 caracteres</li>
+                            <li>Una letra mayúscula (A-Z)</li>
+                            <li>Una letra minúscula (a-z)</li>
+                            <li>Un número (0-9)</li>
+                            <li>Un símbolo especial (!@#$%...)</li>
+                        </ul>
+                    </div>
+                    <input type="password" id="pass" placeholder="Mínimo 8 caracteres">
+                    <div class="field-error" id="err-pass"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="rpass">Repetir contraseña</label>
+                    <input type="password" id="rpass" placeholder="Repetí tu contraseña">
+                    <div class="field-error" id="err-rpass"></div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="goTo(1)">← Atrás</button>
+                    <button class="btn btn-primary" onclick="goTo(3)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 3: Email, teléfono, dirección -->
+            <div class="step-panel" id="step-3">
+                <p class="step-title">¿Cómo te contactamos?</p>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="tu@email.com">
+                    <div class="field-error" id="err-email"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="telefono">Teléfono</label>
+                    <input type="tel" id="telefono" placeholder="Ej: 1122334455">
+                    <div class="field-error" id="err-telefono"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="direccion">Dirección de envío</label>
+                    <input type="text" id="direccion" placeholder="Calle, número, ciudad">
+                    <div class="field-error" id="err-direccion"></div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="goTo(2)">← Atrás</button>
+                    <button class="btn btn-primary" id="btnRegistrar" onclick="registrar()">Crear cuenta</button>
+                </div>
+            </div>
+
+            <!-- ÉXITO -->
+            <div class="success-panel" id="successPanel">
+                <div class="success-icon">✅</div>
+                <h2>¡Bienvenida!</h2>
+                <p>Tu cuenta fue creada con éxito. En un momento te redirigimos.</p>
+            </div>
+
+            <div class="login-link">
+                ¿Ya tenés cuenta? <a href="login.html">Ingresá acá</a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p><span>Bookstore</span> &mdash; Diseñado y desarrollado por Rocio Monzon · Nicole Roglich · Denise Roglich</p>
+</footer>
+
+<script>
+    let currentStep = 1;
+
+    function goTo(step) {
+        if (step > currentStep && !validarPaso(currentStep)) return;
+
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        currentStep = step;
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        actualizarProgress();
+    }
+
+    function actualizarProgress() {
+        for (let i = 1; i <= 3; i++) {
+            const dot   = document.getElementById(`dot-${i}`);
+            const label = document.getElementById(`label-${i}`);
+
+            dot.classList.remove('active', 'done');
+            label.classList.remove('active', 'done');
+
+            if (i < currentStep) {
+                dot.classList.add('done');
+                dot.textContent = '✓';
+                label.classList.add('done');
+            } else if (i === currentStep) {
+                dot.classList.add('active');
+                dot.textContent = i;
+                label.classList.add('active');
+            } else {
+                dot.textContent = i;
+            }
+        }
+
+        for (let i = 1; i <= 2; i++) {
+            const line = document.getElementById(`line-${i}`);
+            line.classList.toggle('done', i < currentStep);
+        }
+    }
+
+    function limpiarErrores(...ids) {
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = ''; }
+            const input = document.getElementById(id.replace('err-', ''));
+            if (input) input.classList.remove('error');
+        });
+    }
+
+    function mostrarError(id, msg) {
+        document.getElementById(id).textContent = msg;
+        const input = document.getElementById(id.replace('err-', ''));
+        if (input) input.classList.add('error');
+    }
+
+    function validarPaso(paso) {
+        if (paso === 1) {
+            limpiarErrores('err-nombre', 'err-apellido');
+            let ok = true;
+            if (!document.getElementById('nombre').value.trim()) {
+                mostrarError('err-nombre', 'El nombre es requerido.');
+                ok = false;
+            }
+            if (!document.getElementById('apellido').value.trim()) {
+                mostrarError('err-apellido', 'El apellido es requerido.');
+                ok = false;
+            }
+            return ok;
+        }
+
+        if (paso === 2) {
+            limpiarErrores('err-user', 'err-pass', 'err-rpass');
+            let ok = true;
+            const pass  = document.getElementById('pass').value;
+            const rpass = document.getElementById('rpass').value;
+
+            if (!document.getElementById('user').value.trim()) {
+                mostrarError('err-user', 'El nombre de usuario es requerido.');
+                ok = false;
+            }
+            if (pass.length < 8) {
+                mostrarError('err-pass', 'La contraseña debe tener al menos 8 caracteres.');
+                ok = false;
+            } else if (!/[A-Z]/.test(pass)) {
+                mostrarError('err-pass', 'Debe tener al menos una mayúscula.');
+                ok = false;
+            } else if (!/[0-9]/.test(pass)) {
+                mostrarError('err-pass', 'Debe tener al menos un número.');
+                ok = false;
+            } else if (!/[^\w]/.test(pass)) {
+                mostrarError('err-pass', 'Debe tener al menos un símbolo especial.');
+                ok = false;
+            }
+            if (pass !== rpass) {
+                mostrarError('err-rpass', 'Las contraseñas no coinciden.');
+                ok = false;
+            }
+            return ok;
+        }
+
+        return true;
+    }
+
+    function togglePasswordRules() {
+        const rules = document.getElementById('password-rules');
+        rules.style.display = rules.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function registrar() {
+        limpiarErrores('err-email', 'err-telefono', 'err-direccion');
+        document.getElementById('globalError').style.display = 'none';
+
+        const email     = document.getElementById('email').value.trim();
+        const telefono  = document.getElementById('telefono').value.trim();
+        const direccion = document.getElementById('direccion').value.trim();
+
+        let ok = true;
+        if (!email) { mostrarError('err-email', 'El email es requerido.'); ok = false; }
+        if (!telefono) { mostrarError('err-telefono', 'El teléfono es requerido.'); ok = false; }
+        if (!direccion) { mostrarError('err-direccion', 'La dirección es requerida.'); ok = false; }
+        if (!ok) return;
+
+        const btn = document.getElementById('btnRegistrar');
+        btn.disabled = true;
+        btn.textContent = 'Registrando...';
+
+        const body = new URLSearchParams({
+            nombre:    document.getElementById('nombre').value.trim(),
+            apellido:  document.getElementById('apellido').value.trim(),
+            user:      document.getElementById('user').value.trim(),
+            pass:      document.getElementById('pass').value,
+            rpass:     document.getElementById('rpass').value,
+            email,
+            telefono,
+            direccion
+        });
+
+        try {
+            const res  = await fetch('registro.php', { method: 'POST', body });
+            const data = await res.json();
+
+            if (data.type === 'success') {
+                // Ocultar todos los pasos y mostrar éxito
+                document.getElementById(`step-3`).classList.remove('active');
+                document.getElementById('successPanel').style.display = 'block';
+                setTimeout(() => window.location.href = '../index.php', 2000);
+            } else {
+                const errBox = document.getElementById('globalError');
+                errBox.textContent = data.ack;
+                errBox.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Crear cuenta';
+            }
+        } catch (e) {
+            const errBox = document.getElementById('globalError');
+            errBox.textContent = 'Error de conexión. Intentá de nuevo.';
+            errBox.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Crear cuenta';
+        }
+    }
+</script>
+
+</body>
+</html>
