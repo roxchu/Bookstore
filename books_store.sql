@@ -15,20 +15,21 @@
 
 CREATE TABLE `detalle_ventas` (
   `id_detalle` int(11) NOT NULL,
-  `id_venta` int(11) DEFAULT NULL,
-  `nombre_producto` varchar(255) DEFAULT NULL,
-  `precio` decimal(10,2) DEFAULT NULL
+  `id_venta` int(11) NOT NULL,
+  `id_producto` int(11) NOT NULL,
+  `cantidad` int(11) NOT NULL DEFAULT 1,
+  `precio_unitario` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `detalle_ventas`
 --
 
-INSERT INTO `detalle_ventas` (`id_detalle`, `id_venta`, `nombre_producto`, `precio`) VALUES
-(1, 2, 'El Resplandor', 18500.50),
-(2, 3, 'El Resplandor', 18500.50),
-(3, 4, 'El Resplandor', 18500.50),
-(4, 5, 'Harry Potter y la Piedra Filosofal', 25000.00);
+INSERT INTO `detalle_ventas` (`id_detalle`, `id_venta`, `id_producto`, `cantidad`, `precio_unitario`) VALUES
+(1, 1, 1, 1, 25000.00),
+(2, 1, 5, 1, 21000.00),
+(3, 2, 2, 1, 18500.50),
+(4, 2, 7, 1, 15500.00);
 
 -- --------------------------------------------------------
 
@@ -50,7 +51,7 @@ INSERT INTO `genero` (`id_genero`, `nombre_genero`) VALUES
 (2, 'Terror'),
 (3, 'Romance'),
 (4, 'Comedia'),
-(6, 'Poesia');
+(5, 'Poesía');
 
 -- --------------------------------------------------------
 
@@ -62,7 +63,7 @@ CREATE TABLE `producto` (
   `id` int(11) NOT NULL,
   `nombre` varchar(100) NOT NULL,
   `detalle` varchar(1000) NOT NULL,
-  `stock` int(100) NOT NULL,
+  `stock` int(11) NOT NULL,
   `precio` decimal(11,2) NOT NULL,
   `imagen` varchar(255) DEFAULT NULL,
   `id_genero` int(11) DEFAULT NULL,
@@ -92,10 +93,19 @@ INSERT INTO `producto` (`id`, `nombre`, `detalle`, `stock`, `precio`, `imagen`, 
 
 CREATE TABLE `reseña` (
   `id` int(11) NOT NULL,
-  `usuario_id` int(11) DEFAULT NULL,
-  `producto_id` int(11) DEFAULT NULL,
+  `usuario_id` int(11) NOT NULL,
+  `producto_id` int(11) NOT NULL,
   `comentario` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `reseña`
+--
+
+INSERT INTO `reseña` (`id`, `usuario_id`, `producto_id`, `comentario`) VALUES
+(1, 1, 1, 'Muy entretenido, una excelente introducción al mundo mágico.'),
+(2, 2, 2, 'Un clásico del terror. Muy recomendable.'),
+(3, 1, 5, 'Una aventura fantástica que me gustó mucho.');
 
 -- --------------------------------------------------------
 
@@ -105,18 +115,18 @@ CREATE TABLE `reseña` (
 
 CREATE TABLE `rol` (
   `id_rol` int(11) NOT NULL,
-  `nombre_rol` varchar(50) DEFAULT NULL,
-  `rol_descripcción` varchar(155) NOT NULL
+  `nombre_rol` varchar(50) NOT NULL,
+  `rol_descripcion` varchar(155) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `rol`
 --
 
-INSERT INTO `rol` (`id_rol`, `nombre_rol`, `rol_descripcción`) VALUES
+INSERT INTO `rol` (`id_rol`, `nombre_rol`, `rol_descripcion`) VALUES
 (1, 'Admin', 'El administrador puede crear y administrar usuarios, ventas y la tienda'),
 (2, 'Empleado', 'El empleado maneja las ventas y los registros de libros disponibles'),
-(3, 'Cliente', 'EL cliente solamente puede comprar en la tienda ');
+(3, 'Cliente', 'El cliente solamente puede comprar en la tienda');
 
 -- --------------------------------------------------------
 
@@ -141,10 +151,13 @@ CREATE TABLE `usuarios` (
 
 INSERT INTO `usuarios` (`id`, `realname`, `rol_id`, `pass`, `email`, `username`, `telefono`, `direccion`) VALUES
 (1, 'denise roglich', 3, '$2y$10$/w7vHAU6/StCWkD0.KVmheJbtWGQzCt3We4wovsbj14Gh0ip9dxnu', 'denuarmy279@gmail.com', 'denu', '1137742173', 'ahda 121'),
-(2, 'juan Garcica', 3, '$2y$10$7/d.PA3Jbevkc2hfrDStlOGpzFlBF3ScAJ3NfHexRoMqDM4Nk7epq', 'juan@mail.com', 'juan', '1137742172', 'calle falsa 123');
+(2, 'juan Garcia', 3, '$2y$10$7/d.PA3Jbevkc2hfrDStlOGpzFlBF3ScAJ3NfHexRoMqDM4Nk7epq', 'juan@mail.com', 'juan', '1137742172', 'calle falsa 123'),
 (3, 'Nicole Admin', 1, '$2y$10$61sf3aT9/nf1vrN8snnCGeHniFJ2otiNP30CeRetHwsh.r3SWyvPK', 'nicole@gmail.com', 'nicole', '000', 'Administración'),
-(4, 'Denise Admin', 1, '$2y$10$kpkxSAX0HHnHiQHOZJcJWeEmMwBHqQQPMF.v85/O/5GyV7WruEjre', 'denise@gmail.com', 'denise', '000', 'Administración'),
-(5, 'Rocio Admin', 1, '$2y$10$CrWhxPzbVlC2PQ/WuK01RucLkGceJkN5BIHpAck0BvMD1cWf6.MSu', 'Rocioe@gmail.com', 'rocio', '000', 'Administración');
+(4, 'Denise Admin', 1, '$2y$10$kpkxSAX0HHnHiQHOZJcJWeEmMwBHqQQPMF.v85/O/5GyV7WruEjre', 'denise@gmail.com', 'deniseadmin', '000', 'Administración'),
+(5, 'Rocio Admin', 1, '$2y$10$CrWhxPzbVlC2PQ/WuK01RucLkGceJkN5BIHpAck0BvMD1cWf6.MSu', 'rocioe@gmail.com', 'rocio', '000', 'Administración'),
+(6, 'Ivan Roglich', 3, '$2y$10$O/PwSo7PdeCbRKWo5f/g5OlAT2UHwTPpSCjuwtSwy6BZ7hyhWzluC', 'ivan@gmail.com', 'ivan1', '0111568694218', 'jose maria moreno'),
+(7, 'Valentina Gonzales', 3, '$2y$10$76Cc1a1F9L5gnUHaubZJKe0vbv.TiBfHhk0ojuinZLWTS3z1DxTwm', 'valen@gmail.com', 'valen2', '11543176548', 'formosa 242'),
+(8, 'Tito Calderon', 3, '$2y$10$oqvWHWr18sZPMYP51HNUh.uF65aGn8Wi2fJnx7MUbeYvqOhHzYzjq', 'momo@gmail.com', 'momo', '1176382182', 'san isidro 232');
 
 -- --------------------------------------------------------
 
@@ -155,7 +168,6 @@ INSERT INTO `usuarios` (`id`, `realname`, `rol_id`, `pass`, `email`, `username`,
 CREATE TABLE `ventas` (
   `id_venta` int(11) NOT NULL,
   `id_usuario` int(11) NOT NULL,
-  `productos` text NOT NULL,
   `total` decimal(11,2) NOT NULL,
   `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
   `metodo_pago` varchar(50) DEFAULT 'Transferencia/Efectivo'
@@ -165,12 +177,9 @@ CREATE TABLE `ventas` (
 -- Volcado de datos para la tabla `ventas`
 --
 
-INSERT INTO `ventas` (`id_venta`, `id_usuario`, `productos`, `total`, `fecha`, `metodo_pago`) VALUES
-(1, 1, 'El Resplandor', 16650.45, '2026-03-18 13:52:08', 'transferencia'),
-(2, 1, '', 16650.45, '2026-03-18 13:54:03', 'transferencia'),
-(3, 1, '', 16650.45, '2026-03-18 14:00:15', 'transferencia'),
-(4, 1, '', 16650.45, '2026-03-18 14:02:11', 'transferencia'),
-(5, 1, '', 22500.00, '2026-03-18 14:02:27', 'transferencia');
+INSERT INTO `ventas` (`id_venta`, `id_usuario`, `total`, `fecha`, `metodo_pago`) VALUES
+(1, 1, 46000.00, '2026-03-18 16:52:08', 'Transferencia'),
+(2, 2, 34000.50, '2026-03-19 13:15:00', 'Efectivo');
 
 --
 -- Índices para tablas volcadas
@@ -180,7 +189,9 @@ INSERT INTO `ventas` (`id_venta`, `id_usuario`, `productos`, `total`, `fecha`, `
 -- Indices de la tabla `detalle_ventas`
 --
 ALTER TABLE `detalle_ventas`
-  ADD PRIMARY KEY (`id_detalle`);
+  ADD PRIMARY KEY (`id_detalle`),
+  ADD KEY `fk_detalle_venta` (`id_venta`),
+  ADD KEY `fk_detalle_producto` (`id_producto`);
 
 --
 -- Indices de la tabla `genero`
@@ -193,15 +204,15 @@ ALTER TABLE `genero`
 --
 ALTER TABLE `producto`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `id_genero` (`id_genero`);
+  ADD KEY `fk_producto_genero` (`id_genero`);
 
 --
 -- Indices de la tabla `reseña`
 --
 ALTER TABLE `reseña`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `usuario_id` (`usuario_id`),
-  ADD KEY `producto_id` (`producto_id`);
+  ADD KEY `fk_resena_usuario` (`usuario_id`),
+  ADD KEY `fk_resena_producto` (`producto_id`);
 
 --
 -- Indices de la tabla `rol`
@@ -214,14 +225,16 @@ ALTER TABLE `rol`
 --
 ALTER TABLE `usuarios`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `rol_id` (`rol_id`);
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `username` (`username`),
+  ADD KEY `fk_usuario_rol` (`rol_id`);
 
 --
 -- Indices de la tabla `ventas`
 --
 ALTER TABLE `ventas`
   ADD PRIMARY KEY (`id_venta`),
-  ADD KEY `id_usuario` (`id_usuario`);
+  ADD KEY `fk_ventas_usuario` (`id_usuario`);
 
 --
 -- AUTO_INCREMENT de las tablas volcadas
@@ -237,7 +250,7 @@ ALTER TABLE `detalle_ventas`
 -- AUTO_INCREMENT de la tabla `genero`
 --
 ALTER TABLE `genero`
-  MODIFY `id_genero` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_genero` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `producto`
@@ -249,7 +262,7 @@ ALTER TABLE `producto`
 -- AUTO_INCREMENT de la tabla `reseña`
 --
 ALTER TABLE `reseña`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `rol`
@@ -261,42 +274,49 @@ ALTER TABLE `rol`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Restricciones para tablas volcadas
 --
 
 --
+-- Filtros para la tabla `detalle_ventas`
+--
+ALTER TABLE `detalle_ventas`
+  ADD CONSTRAINT `fk_detalle_producto` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_detalle_venta` FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`id_venta`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Filtros para la tabla `producto`
 --
 ALTER TABLE `producto`
-  ADD CONSTRAINT `fk_producto_genero` FOREIGN KEY (`id_genero`) REFERENCES `genero` (`id_genero`) ON DELETE SET NULL;
+  ADD CONSTRAINT `fk_producto_genero` FOREIGN KEY (`id_genero`) REFERENCES `genero` (`id_genero`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `reseña`
 --
 ALTER TABLE `reseña`
-  ADD CONSTRAINT `reseña_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
-  ADD CONSTRAINT `reseña_ibfk_2` FOREIGN KEY (`producto_id`) REFERENCES `producto` (`id`);
+  ADD CONSTRAINT `fk_resena_producto` FOREIGN KEY (`producto_id`) REFERENCES `producto` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_resena_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  ADD CONSTRAINT `fk_usuario_rol` FOREIGN KEY (`rol_id`) REFERENCES `rol` (`id_rol`);
+  ADD CONSTRAINT `fk_usuario_rol` FOREIGN KEY (`rol_id`) REFERENCES `rol` (`id_rol`) ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  ADD CONSTRAINT `fk_ventas_usuario` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id`);
+  ADD CONSTRAINT `fk_ventas_usuario` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id`) ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
