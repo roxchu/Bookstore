@@ -116,9 +116,9 @@ session_start();
         <div class="header-right">
             <?php if(isset($_SESSION['username'])): ?>
                 <span style="color: var(--cream); font-size: 0.9rem; font-weight: bold;">Hola, <?= htmlspecialchars($_SESSION['username']) ?></span>
-                <a href="logout.php" class="login-btn" style="margin-left: 10px;">Salir</a>
+                <a href="registro/logout.php" class="login-btn" style="margin-left: 10px;">Salir</a>
             <?php else: ?>
-                <a href="login.html" class="login-btn">Ingresar</a>
+                <a href="registro/login.html" class="login-btn">Ingresar</a>
             <?php endif; ?>
 
             <div class="cart-container" onclick="toggleCart()">

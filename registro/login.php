@@ -1,55 +1,60 @@
 <?php
 session_start();
-error_reporting(0);
-ini_set('display_errors', 0);
 
-require_once '../../config/conexion.php';
-require_once '../../DAO/UsuarioDAO.php';
+require_once '../conexion.php';  
+require_once '../DAO/UsuarioDAO.php';    
+require_once '../models/Usuario.php';   
 
 header('Content-Type: application/json; charset=utf-8');
 
-// ── Validación de campos vacíos (se queda en la vista) ────────
+// Aseguramos la conexión 
+if (!isset($mysqli)) {
+    $mysqli = new mysqli("localhost", "root", "", "books_store");
+}
+
+// Capturamos las variables usando los nombres de tu formulario
 $user = trim($_POST['username'] ?? '');
 $pass = $_POST['password'] ?? '';
 
+// Validación de campos vacíos con el JS
 if ($user === '' || $pass === '') {
-    echo json_encode(['status' => 'error', 'message' => 'Completa todos los campos']);
+    echo json_encode(["status" => "error", "message" => "Por favor completa todos los campos."]);
     exit;
 }
 
-// ── Llamada al DAO ─────────────────────────────────────────────
-$dao    = new UsuarioDAO($mysqli);
+// Instanciamos el DAO pasándole la conexión mysqli
+$dao = new UsuarioDAO($mysqli);
+
+// Buscamos al usuario en la base de datos
 $usuario = $dao->loginUsuario($user);
 
-// ── Lógica de verificación (se queda en la vista) ─────────────
-if ($usuario === null) {
-    echo json_encode(['status' => 'error', 'message' => 'Usuario no encontrado']);
+// Verificamos si el usuario existe y si la contraseña coincide
+if ($usuario !== null && password_verify($pass, $usuario->getPass())) {
+    
+    // Guardamos los datos clave en la sesión
+    $_SESSION['usuario_id'] = $usuario->getID();
+    $_SESSION['user_id']    = $usuario->getID();
+    $_SESSION['username']   = $usuario->getUserName();
+    $_SESSION['rol_id']     = $usuario->getIdRol();
+
+    // Redirección según el rol
+    $redirectUrl = "../index.php";
+    if ($usuario->getIdRol() == 1 || $usuario->getIdRol() == 2) {
+        $redirectUrl = "admin/dashboard.php";
+    }
+
+    // Retornamos "status" y "message" exactos para el handleLogin()
+    echo json_encode([
+        "status" => "success", 
+        "message" => "¡Sesión iniciada correctamente! Redirigiendo..."
+    ]);
+    exit;
+} else {
+    // Retornamos el error formateado idéntico para que entre al showError()
+    echo json_encode([
+        "status" => "error", 
+        "message" => "Usuario o contraseña incorrectos."
+    ]);
     exit;
 }
-
-if (!password_verify($pass, $usuario->getPass())) {
-    echo json_encode(['status' => 'error', 'message' => 'Contraseña incorrecta']);
-    exit;
-}
-
-// ── Sesión (se queda en la vista) ─────────────────────────────
-$_SESSION['usuario_id'] = $usuario->getId();
-$_SESSION['user_id']    = $usuario->getId();
-$_SESSION['username']   = $usuario->getUserName();
-$_SESSION['rol_id']     = $usuario->getIdRol();
-
-// ── Redirect según rol (se queda en la vista) ─────────────────
-switch ($usuario->getIdRol()) {
-    case 1:
-        $redirect = 'panel_admin.html';
-        break;
-    case 2:
-        $redirect = 'panel_empleado.html';
-        break;
-    case 3:
-    default:
-        $redirect = 'index.php';
-}
-
-echo json_encode(['status' => 'success', 'redirect' => $redirect]);
 ?>

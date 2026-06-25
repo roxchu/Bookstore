@@ -208,7 +208,7 @@
             .then(data => {
                 if (data.status === 'success') {
                     showSuccess('¡Sesión iniciada correctamente! Redirigiendo...');
-                    setTimeout(() => window.location.href = 'index.php', 800);
+                  setTimeout(() => window.location.href = '../index.php', 800);
                 } else {
                     showError(data.message);
                 }

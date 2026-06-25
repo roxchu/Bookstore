@@ -9,7 +9,7 @@ class UsuarioDAO {
         $this->conexion = $conexion;
     }
 
-    // convierte una fila en objeto Usuario
+    // convierte una fila de la BD en un objeto Usuario
     private function hidratar(array $fila): Usuario {
         return new Usuario(
             (int)   $fila['id'],
@@ -23,7 +23,7 @@ class UsuarioDAO {
         );
     }
 
-    // INSERT del nuevo usuario
+    // Método para registrar el usuario 
     public function registrarUsuario(Usuario $u): bool {
         $passHash  = password_hash($u->getPass(), PASSWORD_DEFAULT);
         $rolId     = 3; // rol por defecto: Cliente
@@ -43,23 +43,24 @@ class UsuarioDAO {
         $telefono  = $u->getTelefono();
         $direccion = $u->getDireccion();
 
-        $stmt->bind_param(
-            "ssssssi",
-            $realname, $username, $passHash, $email, $telefono, $direccion, $rolId
-        );
-
+        $stmt->bind_param("ssssssi", $realname, $username, $passHash, $email, $telefono, $direccion, $rolId);
         $resultado = $stmt->execute();
         $stmt->close();
+
         return $resultado;
     }
 
-    // busca usuario por username y devuelve el objeto, o null si no existe
-    // el password_verify() lo hace la VISTA: if (password_verify($input, $usuario->getPass()))
+    // Método para loguear/buscar al usuario tras registrarse
     public function loginUsuario(string $username): ?Usuario {
         $stmt = $this->conexion->prepare(
             "SELECT id, realname, username, pass, email, telefono, direccion, rol_id
              FROM usuarios WHERE username = ?"
         );
+        
+        if (!$stmt) {
+            return null;
+        }
+
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $resultado = $stmt->get_result();
@@ -73,38 +74,5 @@ class UsuarioDAO {
         $stmt->close();
         return null;
     }
-
-    // busca usuario por email — usado en olvideContrasenia.php
-    public function getByEmail(string $email): ?Usuario {
-        $stmt = $this->conexion->prepare(
-            "SELECT id, realname, username, pass, email, telefono, direccion, rol_id
-             FROM usuarios WHERE email = ?"
-        );
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $resultado = $stmt->get_result();
-
-        if ($resultado->num_rows === 1) {
-            $fila = $resultado->fetch_assoc();
-            $stmt->close();
-            return $this->hidratar($fila);
-        }
-
-        $stmt->close();
-        return null;
-    }
-
-    // actualiza la contraseña — usado en olvideContrasenia.php
-    // hashea la contraseña nueva antes de guardarla
-    public function actualizarPassword(int $id, string $passNueva): bool {
-        $passHash = password_hash($passNueva, PASSWORD_DEFAULT);
-
-        $stmt = $this->conexion->prepare(
-            "UPDATE usuarios SET pass = ? WHERE id = ?"
-        );
-        $stmt->bind_param("si", $passHash, $id);
-        $resultado = $stmt->execute();
-        $stmt->close();
-        return $resultado;
-    }
 }
+?>

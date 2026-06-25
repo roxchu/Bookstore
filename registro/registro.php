@@ -1,11 +1,17 @@
 <?php
 session_start();
 
-require_once '../../config/conexion.php';
-require_once '../../DAO/UsuarioDAO.php';
-require_once '../../models/Usuario.php';
+
+require_once '../conexion.php';  
+require_once '../DAO/UsuarioDAO.php';    
+require_once '../models/Usuario.php';   
 
 header('Content-Type: application/json; charset=utf-8');
+
+// Forzamos la conexión mysqli usando las credenciales idénticas a tu conexion.php
+if (!isset($mysqli)) {
+    $mysqli = new mysqli("localhost", "root", "", "books_store");
+}
 
 // ── Recibe datos del formulario ────────────────────────────────
 $nombre    = trim($_POST['nombre']    ?? '');
@@ -17,7 +23,7 @@ $email     = trim($_POST['email']     ?? '');
 $telefono  = trim($_POST['telefono']  ?? '');
 $direccion = trim($_POST['direccion'] ?? '');
 
-// ── Validación de campos vacíos (se queda en la vista) ────────
+// ── Validación de campos vacíos ────────────────────────
 $requiredFields = [
     'nombre'   => 'nombre',
     'apellido' => 'apellido',
@@ -36,17 +42,13 @@ foreach ($requiredFields as $postKey => $fieldId) {
     }
 }
 
-// ── Validación de email (se queda en la vista) ─────────────────
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     echo json_encode(["type" => "error", "ack" => "El email no es válido.", "field" => "email"]);
     exit;
 }
 
-// ── Validación de contraseña (se queda en la vista) ───────────
-$pass  = htmlspecialchars($pass);
-$rpass = htmlspecialchars($rpass);
+// ── Validación de contraseña ───────────────────────────
 $passwordError = "";
-
 if ($pass !== $rpass)                        $passwordError .= "Las contraseñas no coinciden.\n";
 if (strlen($pass) < 8)                       $passwordError .= "La contraseña debe tener al menos 8 caracteres.\n";
 if (!preg_match("#[0-9]+#", $pass))          $passwordError .= "La contraseña debe tener al menos un número.\n";
@@ -59,24 +61,30 @@ if (!empty($passwordError)) {
     exit;
 }
 
-// ── Llamada al DAO ─────────────────────────────────────────────
+// ── Preparación de los datos ───────────────────────────
 $nombre_apellido = $nombre . ' ' . $apellido;
 
-// El id va en 0 porque es un usuario nuevo (la BD asigna el id real)
+// Creamos el objeto Usuario usando el constructor original
 $usuario = new Usuario(0, $nombre_apellido, $user, $pass, $email, $telefono, $direccion, 3);
 
+// Instanciamos el DAO pasándole el objeto $mysqli asegurado
 $dao = new UsuarioDAO($mysqli);
 
+// Llamamos a registrarUsuario que esta ubicado en UsuarioDAO
 if ($dao->registrarUsuario($usuario)) {
-    // ── Sesión automática tras registro (se queda en la vista) ─
+    
+    // Llamamos a loginUsuario donde se ubica en UsuarioDAO
     $usuarioCreado = $dao->loginUsuario($user);
-    $_SESSION['usuario_id'] = $usuarioCreado->getId();
-    $_SESSION['user_id']    = $usuarioCreado->getId();
-    $_SESSION['username']   = $usuarioCreado->getUserName();
-    $_SESSION['rol_id']     = $usuarioCreado->getIdRol();
+    
+    if ($usuarioCreado !== null) {
+        $_SESSION['usuario_id'] = $usuarioCreado->getID();
+        $_SESSION['user_id']    = $usuarioCreado->getID();
+        $_SESSION['username']   = $usuarioCreado->getUserName();
+        $_SESSION['rol_id']     = $usuarioCreado->getIdRol();
+    }
 
     echo json_encode(["type" => "success", "ack" => "Usuario registrado con éxito."]);
 } else {
-    echo json_encode(["type" => "error", "ack" => "No se pudo registrar el usuario."]);
+    echo json_encode(["type" => "error", "ack" => "No se pudo registrar el usuario. El usuario o email ya existen."]);
 }
 ?>
