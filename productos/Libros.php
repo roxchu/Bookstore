@@ -1,16 +1,21 @@
 <?php
 session_start();
 
-// Conexión a la base de datos corregida
+// 1. Incluimos los archivos del DAO y el Modelo (Ajustá las rutas si tus carpetas se llaman distinto)
+require_once __DIR__ . '/../models/Productos.php';
+require_once __DIR__ . '/../DAO/ProductoDAO.php';
+// Conexión a la base de datos
 $conexion = new mysqli("localhost", "root", "", "books_store");
 if ($conexion->connect_error) {
     die("Error de conexión: " . $conexion->connect_error);
 }
 
-// 1. LÓGICA DE BÚSQUEDA Y FILTRADO
+// 2. Instanciamos el DAO de Producto pasándole la conexión
+$productoDAO = new ProductoDAO($conexion);
+
+// 3. Capturamos los filtros de la URL
 $busqueda = isset($_GET['q']) ? trim($_GET['q']) : '';
 $id_genero = isset($_GET['genero']) ? intval($_GET['genero']) : 0;
-$term = "%$busqueda%";
 
 // Obtener nombre del género para el encabezado
 $nombre_genero = "Todos los libros";
@@ -25,19 +30,8 @@ if ($id_genero > 0) {
     $stmt_g->close();
 }
 
-// Consulta de libros con búsqueda integrada
-if ($id_genero > 0) {
-    $sql = "SELECT * FROM producto WHERE id_genero = ? AND (nombre LIKE ? OR autor LIKE ?) ORDER BY id DESC";
-    $stmt = $conexion->prepare($sql);
-    $stmt->bind_param("iss", $id_genero, $term, $term);
-} else {
-    $sql = "SELECT * FROM producto WHERE (nombre LIKE ? OR autor LIKE ?) ORDER BY id DESC";
-    $stmt = $conexion->prepare($sql);
-    $stmt->bind_param("ss", $term, $term);
-}
-$stmt->execute();
-$libros = $stmt->get_result();
-$stmt->close();
+// 4. ¡ACA USAMOS EL DAO! Traemos la lista de objetos Producto
+$lista_libros = $productoDAO->buscarYFiltrar($busqueda, $id_genero);
 
 // Obtener todos los géneros para el menú lateral
 $generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
@@ -332,12 +326,50 @@ $generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
 #checkoutModal.open {
     display: flex;
 }
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+.dropdown-toggle {
+    background: white;
+    color: #1a3d2b;
+    border: 1px solid #1a3d2b;
+    padding: 8px 15px;
+    font-weight: bold;
+    border-radius: 20px;
+    cursor: pointer;
+}
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+    z-index: 1000;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+.dropdown-menu a {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 0.85rem;
+}
+.dropdown-menu a:hover {
+    background-color: #f5f5f5;
+}
+.user-dropdown:hover .dropdown-menu {
+    display: block;
+}
     </style>
 </head>
 <body>
 
 <header>
-    <a href="index.php" class="logo">
+    <a href="../index.php" class="logo">
         <span class="logo-main">Bookstore</span>
         <span class="logo-sub">Tu librería de confianza</span>
     </a>
@@ -353,12 +385,20 @@ $generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
     </form>
 
     <div class="header-right">
-        <?php if(isset($_SESSION['username'])): ?>
-            <span style="color: var(--cream); font-weight: bold;">Hola, <?= htmlspecialchars($_SESSION['username']) ?></span>
-            <a href="logout.php" class="login-btn">Salir</a>
-        <?php else: ?>
-            <a href="login.html" class="login-btn">Ingresar</a>
-        <?php endif; ?>
+       <?php if (isset($_SESSION['username'])): ?>
+    <div class="user-dropdown">
+        <button class="dropdown-toggle">
+            👤 ¡Hola, <?= htmlspecialchars($_SESSION['username']) ?>! ▼
+        </button>
+        <div class="dropdown-menu">
+            <a href="#" onclick="verMisCompras()">Mis Compras</a>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 5px 0;">
+            <a href="../registro/logout.php" style="color: #c0392b;">Cerrar Sesión</a>
+        </div>
+    </div>
+<?php else: ?>
+    <a href="../registro/login.html" class="nav-btn">Ingresar</a>
+<?php endif; ?>
 
         <div class="cart-container" onclick="toggleCart()">
             <img src="https://cdn-icons-png.flaticon.com/512/5412/5412512.png" id="carrito">
@@ -372,7 +412,7 @@ $generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
         <?= !empty($busqueda) ? "🔍 " . htmlspecialchars($busqueda) : htmlspecialchars($nombre_genero) ?>
     </h1>
     <div class="hero-line"></div>
-    <p><?= $libros->num_rows ?> libros encontrados</p>
+    <p><?= count($lista_libros) ?> libros encontrados</p>
 </div>
 
 <div class="page-wrapper">
@@ -391,35 +431,35 @@ $generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
     </aside>
 
     <section class="books-grid">
-        <?php if ($libros->num_rows === 0): ?>
-            <p style="grid-column: 1/-1; text-align: center; padding: 3rem;">No se encontraron libros para tu búsqueda.</p>
-        <?php else: ?>
-            <?php while ($libro = $libros->fetch_assoc()): ?>
-                <div class="book-card">
-                    <div class="book-img-wrap">
-                        <img src="img/<?= htmlspecialchars($libro['imagen']) ?>" onerror="this.src='https://via.placeholder.com/200x300?text=Libro'">
-                    </div>
-                    
-                    <div class="book-body">
-                        <h3 class="book-title"><?= htmlspecialchars($libro['nombre']) ?></h3>
-                        <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">por <?= htmlspecialchars($libro['autor']) ?></p>
+    <?php if (count($lista_libros) === 0): ?>
+        <p style="grid-column: 1/-1; text-align: center; padding: 3rem;">No se encontraron libros para tu búsqueda.</p>
+    <?php else: ?>
+        <?php foreach ($lista_libros as $libro): ?>
+            <div class="book-card">
+                <div class="book-img-wrap">
+                    <img src="../img/<?= htmlspecialchars($libro->getImagen()) ?>" onerror="this.src='https://via.placeholder.com/200x300?text=Libro'">
+                </div>
+                
+                <div class="book-body">
+                    <h3 class="book-title"><?= htmlspecialchars($libro->getNombre()) ?></h3>
+                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">por <?= htmlspecialchars($libro->getAutor()) ?></p>
 
-                        <details class="book-description">
-                            <summary>Ver descripción</summary>
-                            <div class="description-text">
-                                <?= htmlspecialchars($libro['detalle'] ?? 'Sin descripción disponible.') ?>
-                            </div>
-                        </details>
-
-                        <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 15px;">
-                            <span class="book-price">$<?= number_format($libro['precio'], 2) ?></span>
-                            <button class="add-btn" onclick="addToCart('<?= htmlspecialchars(addslashes($libro['nombre'])) ?>', <?= $libro['precio'] ?>)">+ Carrito</button>
+                    <details class="book-description">
+                        <summary>Ver descripción</summary>
+                        <div class="description-text">
+                            <?= htmlspecialchars($libro->getDetalle() ?? 'Sin descripción disponible.') ?>
                         </div>
+                    </details>
+
+                    <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 15px;">
+                        <span class="book-price">$<?= number_format($libro->getPrecio(), 2) ?></span>
+                        <button class="add-btn" onclick="addToCart('<?= htmlspecialchars(addslashes($libro->getNombre())) ?>', <?= $libro->getPrecio() ?>)">+ Carrito</button>
                     </div>
                 </div>
-            <?php endwhile; ?>
-        <?php endif; ?>
-    </section>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</section>
     
 </div>
 
@@ -459,18 +499,20 @@ $generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
     const usuarioLogueado = <?= isset($_SESSION['usuario_id']) ? 'true' : 'false' ?>;
     let cart = [], total = 0;
 
-    function addToCart(name, price) {
-        if (!usuarioLogueado) {
-            alert("Debes iniciar sesión para comprar.");
-            window.location.href = 'login.html';
-            return;
-        }
-        cart.push({ name, price });
-        total += price;
-        document.getElementById('cart-count').textContent = cart.length;
-        renderCart();
-        showToast(`"${name}" agregado al carrito`);
+function addToCart(name, price) {
+    if (!usuarioLogueado) {
+        alert("Debes iniciar sesión para comprar.");
+        // Corregimos la ruta para que vaya a la carpeta registro
+        window.location.href = '../registro/login.html';
+        return;
     }
+    
+    cart.push({ name, price });
+    total += price;
+    document.getElementById('cart-count').textContent = cart.length;
+    renderCart();
+    showToast(`"${name}" agregado al carrito`);
+}
 
     function renderCart() {
     const container = document.getElementById('cartItems');
@@ -542,69 +584,72 @@ function closeCheckout() {
 }
 
 async function confirmarVentaFinal() {
-    const metodoInput = document.querySelector('input[name="metodoPago"]:checked');
-    const metodo = metodoInput ? metodoInput.value : 'efectivo';
-    
-    // Sacamos el total del texto del HTML
-    const totalTexto = document.getElementById('final-total').textContent;
-    const totalVenta = parseFloat(totalTexto.replace('$', ''));
-
-    if (isNaN(totalVenta) || totalVenta <= 0) {
-        alert("Error en el monto del total.");
+    if (!cart || cart.length === 0) {
+        alert("El carrito está vacío.");
         return;
+    }
+
+    let metodoPago = "Efectivo";
+    const selectMetodo = document.getElementById("metodo-pago") || document.getElementById("metodo_pago");
+    if (selectMetodo) {
+        metodoPago = selectMetodo.value;
     }
 
     try {
         const response = await fetch('guardar_venta.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
-                total: totalVenta, // Corregido: antes decía totalFinal
-                metodo: metodo,
+                total: total,
+                metodo: metodoPago,
                 items: cart
             })
         });
 
-        const res = await response.json();
+        const result = await response.json();
 
-        if (res.success) {
-            // Cerramos el modal de pago
-            document.getElementById('checkoutModal').classList.remove('open');
+        if (result.success) {
+            alert("¡Compra guardada con éxito!");
+            
+            // BUSCAMOS EL CONTENEDOR DEL TICKET (Ajustado a los campos en español del backend)
+            const ticketContent = document.getElementById("ticketContent");
+            if (ticketContent && result.usuario) {
+                ticketContent.innerHTML = `
+                    <p><b>Factura N°:</b> ${result.id_factura}</p>
+                    <p><b>Cliente:</b> ${result.usuario.realname}</p>
+                    <p><b>Dirección:</b> ${result.usuario.direccion}</p>
+                    <p><b>Email:</b> ${result.usuario.email}</p>
+                    <hr style="border-top:1px dashed #333; margin: 10px 0;">
+                    <p><b>Método de Pago:</b> ${result.compra.metodo}</p>
+                    <p><b>Fecha:</b> ${result.compra.fecha}</p>
+                    <h3 style="text-align:right; margin-top:15px; color:#1a3d2b;">Total: $${result.compra.total.toFixed(2)}</h3>
+                `;
+                
+                // Cerramos el modal de confirmación y abrimos el del ticket impreso
+                if (document.getElementById("checkoutModal")) document.getElementById("checkoutModal").style.display = "none";
+                if (document.getElementById("ticketModal")) document.getElementById("ticketModal").style.display = "flex";
+            } else {
+                // Si por alguna razón no tenés el contenedor de ticket, te avisa y recarga
+                alert("Venta procesada. Redirigiendo...");
+                location.reload();
+            }
 
-            // Rellenamos el ticket
-            const ticketHtml = `
-                <p><strong>Nro. Operación:</strong> #${res.id_factura}</p>
-                <p><strong>Fecha:</strong> ${res.compra.fecha}</p>
-                <hr style="border:none; border-top:1px dashed #ccc;">
-                <p style="margin-bottom:5px;"><strong>CLIENTE:</strong> ${res.usuario.realname}</p>
-                <p style="margin:0;"><strong>ENVÍO A:</strong> ${res.usuario.direccion}</p>
-                <p style="margin:0;"><strong>EMAIL:</strong> ${res.usuario.email}</p>
-                <hr style="border:none; border-top:1px dashed #ccc;">
-                <p><strong>PAGO:</strong> ${res.compra.metodo.toUpperCase()}</p>
-                <div style="display:flex; justify-content:space-between; font-size:1.2rem; font-weight:bold; margin-top:15px; border-top:2px solid #333; padding-top:10px;">
-                    <span>TOTAL:</span>
-                    <span>$${res.compra.total.toFixed(2)}</span>
-                </div>
-                <p style="text-align:center; margin-top:20px; font-style:italic;">¡Gracias por tu compra!</p>
-            `;
-
-            document.getElementById('ticketContent').innerHTML = ticketHtml;
-            document.getElementById('ticketModal').style.display = 'flex';
-
-            // Limpiamos todo
+            // Limpiamos el carrito local tras el éxito
             cart = [];
             total = 0;
-            document.getElementById('cart-count').textContent = '0';
-            renderCart();
+            if (document.getElementById('cart-count')) document.getElementById('cart-count').textContent = '0';
+            
         } else {
-            alert("Hubo un problema: " + res.error);
+            alert("Error en el servidor: " + (result.error || "No se pudo procesar la venta."));
         }
+
     } catch (error) {
-        console.error("Error:", error);
-        alert("Error de conexión con el servidor.");
+        console.error("Error capturado:", error);
+        alert("Error en el script de compra: " + error.message);
     }
 }
-
 function confirmarPedido() {
     alert("¡Pedido confirmado con éxito!");
     // Aquí es donde luego limpiarías el carrito y guardarías en la BD
@@ -627,6 +672,44 @@ function removeFromCart(index) {
   
     renderCart();
     showToast("Producto eliminado");
+}
+async function verMisCompras() {
+    const modal = document.getElementById('comprasModal');
+    const content = document.getElementById('comprasContent');
+    modal.style.display = 'flex';
+    content.innerHTML = '<p style="text-align:center; color:#666;">Cargando historial...</p>';
+
+    try {
+        const response = await fetch('mis_compras.php');
+        const result = await response.json();
+
+        if (result.success) {
+            if (result.compras.length === 0) {
+                content.innerHTML = '<p style="text-align:center; padding:20px; color:#666;">Aún no realizaste ninguna compra.</p>';
+                return;
+            }
+            let html = '<div style="display:flex; flex-direction:column; gap:12px;">';
+            result.compras.forEach(compra => {
+                html += `
+                    <div style="border:1px solid #e0e0e0; padding:12px; border-radius:8px; background:#fafafa;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span style="font-weight:bold; color:#1a3d2b;">Pedido #${compra.id}</span>
+                            <span style="color:#666; font-size:0.8rem;">${compra.fecha}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                            <span>Pago: ${compra.metodo}</span>
+                            <span style="font-weight:bold; color:#c0392b;">$${compra.total.toFixed(2)}</span>
+                        </div>
+                    </div>`;
+            });
+            html += '</div>';
+            content.innerHTML = html;
+        } else {
+            content.innerHTML = `<p style="color:red; text-align:center;">${result.error}</p>`;
+        }
+    } catch (error) {
+        content.innerHTML = '<p style="color:red; text-align:center;">Error al conectar con el servidor.</p>';
+    }
 }
 </script>
 <div class="cart-modal" id="checkoutModal">
@@ -681,9 +764,18 @@ function removeFromCart(index) {
         <div id="ticketContent" style="margin-top:20px; font-size:0.95rem; color:#333;">
             </div>
 
-        <button onclick="window.location.href='index.php'" style="width:100%; background:#1a3d2b; color:white; border:none; padding:12px; margin-top:25px; cursor:pointer; border-radius:8px; font-weight:bold; font-family: 'Lato', sans-serif;">
+        <button onclick="window.location.href='../index.php'" style="width:100%; background:#1a3d2b; color:white; border:none; padding:12px; margin-top:25px; cursor:pointer; border-radius:8px; font-weight:bold; font-family: 'Lato', sans-serif;">
             LISTO, VOLVER AL INICIO
         </button>
+    </div>
+</div>
+<div id="comprasModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:5000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:25px; border-radius:12px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:15px;">
+            <h3 style="margin:0; color:#1a3d2b;">Mi Historial de Compras</h3>
+            <button onclick="document.getElementById('comprasModal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <div id="comprasContent"></div>
     </div>
 </div>
 </body>

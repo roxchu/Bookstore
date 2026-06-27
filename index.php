@@ -95,18 +95,59 @@ session_start();
             display: block;
             cursor: pointer;
         }
+
+        /* ── CSS AGREGADO PARA EL MENÚ DESPLEGABLE DE USUARIO ── */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-toggle {
+            background: white;
+            color: #1a3d2b;
+            border: 1px solid #1a3d2b;
+            padding: 8px 15px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+            z-index: 1000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .dropdown-menu a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+        .dropdown-menu a:hover {
+            background-color: #f5f5f5;
+        }
+        .user-dropdown:hover .dropdown-menu {
+            display: block;
+        }
     </style>
 </head>
 
 <body>
     <header>
-        
         <a href="index.php" class="logo">
             <span class="logo-main">Bookstore</span>
             <span class="logo-sub">Tu librería de confianza</span>
         </a>
 
-        <form action="Libros.php" method="GET" class="search-container">
+        <form action="productos/Libros.php" method="GET" class="search-container">
             <div class="search-box">
                 <input type="text" name="q" placeholder="¿Qué historia buscas hoy?">
                 <button type="submit">🔍</button>
@@ -114,11 +155,19 @@ session_start();
         </form>
 
         <div class="header-right">
-            <?php if(isset($_SESSION['username'])): ?>
-                <span style="color: var(--cream); font-size: 0.9rem; font-weight: bold;">Hola, <?= htmlspecialchars($_SESSION['username']) ?></span>
-                <a href="registro/logout.php" class="login-btn" style="margin-left: 10px;">Salir</a>
+            <?php if (isset($_SESSION['username'])): ?>
+                <div class="user-dropdown">
+                    <button class="dropdown-toggle">
+                        👤 ¡Hola, <?= htmlspecialchars($_SESSION['username']) ?>! ▼
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="#" onclick="verMisCompras()">Mis Compras</a>
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 5px 0;">
+                        <a href="registro/logout.php" style="color: #c0392b;">Cerrar Sesión</a>
+                    </div>
+                </div>
             <?php else: ?>
-                <a href="registro/login.html" class="login-btn">Ingresar</a>
+                <a href="registro/login.html" class="nav-btn">Ingresar</a>
             <?php endif; ?>
 
             <div class="cart-container" onclick="toggleCart()">
@@ -139,7 +188,7 @@ session_start();
         <div class="section-divider"></div>
 
         <div class="book-showcase">
-            <a href="libros.php?genero=3" class="book-card">
+            <a href="productos/libros.php?genero=3" class="book-card">
                 <div class="book-image-wrap">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSRLoOoI0K8Xq-BKcwFq-mK4GCcDY4w8W54A&s" alt="Romanticismo" class="book-image">
                     <span class="book-badge">Destacado</span>
@@ -149,7 +198,7 @@ session_start();
                 </div>
             </a>
 
-            <a href="libros.php?genero=1" class="book-card">
+            <a href="productos/libros.php?genero=1" class="book-card">
                 <div class="book-image-wrap">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWx-rnxpTtxMdg2AtIMLEQBBAJtdLpepvEhg&s" alt="Ficcion" class="book-image">
                 </div>
@@ -158,7 +207,7 @@ session_start();
                 </div>
             </a>
 
-            <a href="libros.php?genero=2" class="book-card">
+            <a href="productos/libros.php?genero=2" class="book-card">
                 <div class="book-image-wrap">
                     <img src="https://www.bloomberglinea.com/resizer/v2/AFIIUEY52BAS5OBKCT4LHJV63Q.jpg?auth=3dbb65a477b4e889d4b42083ac073a2127b09d427f4ccdbe723419839da2addd&width=800&height=450&quality=80&smart=true" alt="Terror" class="book-image">
                 </div>
@@ -167,7 +216,7 @@ session_start();
                 </div>
             </a>
 
-            <a href="libros.php?genero=4" class="book-card">
+            <a href="productos/libros.php?genero=4" class="book-card">
                 <div class="book-image-wrap">
                     <img src="https://thumbs.dreamstime.com/b/m%C3%A1scaras-del-teatro-de-la-comedia-y-de-la-tragedia-21958013.jpg" alt="Comedia" class="book-image">
                 </div>
@@ -176,7 +225,7 @@ session_start();
                 </div>
             </a>
 
-            <a href="libros.php?genero=5" class="book-card">
+            <a href="productos/libros.php?genero=5" class="book-card">
                 <div class="book-image-wrap">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs8OSuskP5BtLo0KGXt0JuCU1tibDCpdxvXg&s" alt="Misterio" class="book-image">
                 </div>
@@ -185,7 +234,7 @@ session_start();
                 </div>
             </a>
 
-            <a href="libros.php?genero=6" class="book-card">
+            <a href="productos/libros.php?genero=6" class="book-card">
                 <div class="book-image-wrap">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZnFxTr-pSLQ-EHoK1tTP8f5evl4RbJeaTzA&s" alt="Poesia" class="book-image">
                 </div>
@@ -232,21 +281,72 @@ session_start();
         <button class="checkout-btn">Finalizar Compra</button>
     </div>
 
+    <div id="comprasModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:5000; justify-content:center; align-items:center;">
+        <div style="background:white; padding:25px; border-radius:12px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto; box-shadow: 0 5px 20px rgba(0,0,0,0.3); font-family: 'Lato', sans-serif;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:15px;">
+                <h3 style="margin:0; color:#1a3d2b; font-family:'Playfair Display', serif;">Mi Historial de Compras</h3>
+                <button onclick="document.getElementById('comprasModal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div id="comprasContent"></div>
+        </div>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <footer>
-        <p><span>Bookstore</span> &mdash; Rocio Monzon · Nicole Roglich · Denise Roglich</p>
+        <p><span>Bookstore</span> &mdash; Rocio Monzon · Nicole Roglich · Denise Roglich · Abril Veron</p>
     </footer>
 
     <script>
-        const usuarioLogueado = <?= isset($_SESSION['usuario_id']) ? 'true' : 'false' ?>;
         let cart = [];
         let total = 0;
+        const usuarioLogueado = <?= isset($_SESSION['username']) ? 'true' : 'false' ?>;
+
+        // ── JAVASCRIPT AGREGADO: FUNCIÓN VER MIS COMPRAS ──
+        async function verMisCompras() {
+            const modal = document.getElementById('comprasModal');
+            const content = document.getElementById('comprasContent');
+            modal.style.display = 'flex';
+            content.innerHTML = '<p style="text-align:center; color:#666;">Cargando historial...</p>';
+
+            try {
+                // Como index.php está afuera, apunta a la subcarpeta productos/
+                const response = await fetch('productos/mis_compras.php');
+                const result = await response.json();
+
+                if (result.success) {
+                    if (result.compras.length === 0) {
+                        content.innerHTML = '<p style="text-align:center; padding:20px; color:#666;">Aún no realizaste ninguna compra.</p>';
+                        return;
+                    }
+                    let html = '<div style="display:flex; flex-direction:column; gap:12px;">';
+                    result.compras.forEach(compra => {
+                        html += `
+                            <div style="border:1px solid #e0e0e0; padding:12px; border-radius:8px; background:#fafafa;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                    <span style="font-weight:bold; color:#1a3d2b;">Pedido #${compra.id}</span>
+                                    <span style="color:#666; font-size:0.8rem;">${compra.fecha}</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                                    <span>Pago: ${compra.metodo}</span>
+                                    <span style="font-weight:bold; color:#c0392b;">$${compra.total.toFixed(2)}</span>
+                                </div>
+                            </div>`;
+                    });
+                    html += '</div>';
+                    content.innerHTML = html;
+                } else {
+                    content.innerHTML = `<p style="color:red; text-align:center;">${result.error}</p>`;
+                }
+            } catch (error) {
+                content.innerHTML = '<p style="color:red; text-align:center;">Error al conectar con el servidor.</p>';
+            }
+        }
 
         function addToCart(name, price) {
             if(!usuarioLogueado) {
                 alert("Debes iniciar sesión para comprar.");
-                window.location.href = 'login.html';
+                window.location.href = 'registro/login.html';
                 return;
             }
             cart.push({ name, price });

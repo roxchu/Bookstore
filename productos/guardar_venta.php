@@ -1,38 +1,58 @@
 <?php
 session_start();
-require_once 'conexion.php'; // Usamos tu archivo de conexión
+
+header('Content-Type: application/json');
+
+// 1. Conexión directa a la base de datos (igual que en Libros.php)
+$conexion = new mysqli("localhost", "root", "", "books_store");
+if ($conexion->connect_error) {
+    echo json_encode(['success' => false, 'error' => 'Error de conexión: ' . $conexion->connect_error]);
+    exit;
+}
 
 $input = file_get_contents('php://input');
 $data = json_decode($input, true);
 
-// IMPORTANTE: Usamos el nombre de sesión que pusimos en login.php
-$uid = $_SESSION['user_id'] ?? $_SESSION['id_usuario'] ?? null;
+// 2. Traemos el ID del usuario usando la misma variable de sesión que Libros.php
+$uid = $_SESSION['usuario_id'] ?? null;
 
 if (!$uid) {
-    echo json_encode(['success' => false, 'error' => 'No hay sesión de usuario']);
+    echo json_encode(['success' => false, 'error' => 'No hay sesión de usuario activa.']);
     exit;
 }
 
-$total = $data['total'];
-$metodo = $data['metodo'];
+$total = isset($data['total']) ? floatval($data['total']) : 0;
+$metodo = isset($data['metodo']) ? $data['metodo'] : 'Efectivo';
 
-// 1. Insertamos en la tabla ventas (ahora con id_usuario)
-$sqlVent⚙️
-a = "INSERT INTO ventas (id_usuario, total, metodo_pago) VALUES (?, ?, ?)";
-$stmtVenta = $mysqli->prepare($sqlVenta); // Usamos $mysqli que es como está en tu conexion.php
+// 3. Insertamos la venta de forma limpia
+$sqlVenta = "INSERT INTO ventas (id_usuario, total, metodo_pago) VALUES (?, ?, ?)";
+$stmtVenta = $conexion->prepare($sqlVenta);
+
+if (!$stmtVenta) {
+    echo json_encode(['success' => false, 'error' => 'Error en la preparación: ' . $conexion->error]);
+    exit;
+}
+
 $stmtVenta->bind_param("ids", $uid, $total, $metodo);
 
 if ($stmtVenta->execute()) {
-    $id_factura = $mysqli->insert_id;
+    $id_factura = $conexion->insert_id;
 
-    // Buscamos los datos del usuario para el ticket que me pediste antes
-    $resUser = $mysqli->query("SELECT realname, direccion, email FROM usuarios WHERE id = $uid");
-    $userData = $resUser->fetch_assoc();
+    // 4. Buscamos los datos del usuario para armar el ticket final
+    $resUser = $conexion->query("SELECT realname, direccion, email FROM usuarios WHERE id = $uid");
+    $userData = $resUser ? $resUser->fetch_assoc() : null;
+
+    // Si tu tabla de usuarios usa 'nombre' en vez de 'realname', lo controlamos:
+    $nombreCliente = $userData['realname'] ?? $userData['nombre'] ?? 'Cliente';
 
     echo json_encode([
         'success' => true,
         'id_factura' => $id_factura,
-        'usuario' => $userData,
+        'usuario' => [
+            'realname' => $nombreCliente,
+            'direccion' => $userData['direccion'] ?? 'No especificada',
+            'email' => $userData['email'] ?? 'Sin email'
+        ],
         'compra' => [
             'total' => $total,
             'metodo' => $metodo,
@@ -40,6 +60,9 @@ if ($stmtVenta->execute()) {
         ]
     ]);
 } else {
-    echo json_encode(['success' => false, 'error' => $mysqli->error]);
+    echo json_encode(['success' => false, 'error' => $stmtVenta->error]);
 }
+
+$stmtVenta->close();
+$conexion->close();
 ?>

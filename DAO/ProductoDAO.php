@@ -118,4 +118,31 @@ class ProductoDAO {
         $stmt->close();
         return $resultado;
     }
+    
+    // Busca por término dentro de un género específico o en general
+    public function buscarYFiltrar(string $term, int $idGenero = 0): array {
+        $like = "%$term%";
+        
+        if ($idGenero > 0) {
+            $stmt = $this->conexion->prepare(
+                "SELECT * FROM producto WHERE id_genero = ? AND (nombre LIKE ? OR autor LIKE ?) ORDER BY id DESC"
+            );
+            $stmt->bind_param("iss", $idGenero, $like, $like);
+        } else {
+            $stmt = $this->conexion->prepare(
+                "SELECT * FROM producto WHERE nombre LIKE ? OR autor LIKE ? ORDER BY id DESC"
+            );
+            $stmt->bind_param("ss", $like, $like);
+        }
+        
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        
+        $productos = [];
+        while ($fila = $resultado->fetch_assoc()) {
+            $productos[] = $this->hidratar($fila);
+        }
+        $stmt->close();
+        return $productos;
+    }
 }
