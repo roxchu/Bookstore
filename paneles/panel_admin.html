@@ -15,7 +15,7 @@
     </div>
     <div class="header-right">
         <span class="admin-badge">Admin</span>
-        <a href="index.php" class="back-btn">← Volver</a>
+        <a href="../index.php" class="back-btn">← Volver</a>
     </div>
 </header>
 
@@ -123,7 +123,7 @@
 
     async function loadProducts() {
         try {
-            const res = await fetch('admin_productos.php?action=list');
+            const res = await fetch('../productos/admin_productos.php?action=list');
             const data = await res.json();
             if (data.status === 'success') {
                 allProducts = data.productos;
@@ -259,7 +259,7 @@
                 formData.append('imagen', imagenInput.files[0]);
             }
 
-            const res = await fetch('admin_productos.php', {
+            const res = await fetch('../productos/admin_productos.php', {
                 method: 'POST',
                 body: formData
             });
@@ -298,7 +298,7 @@
         formData.append('id', deleteId);
 
         try {
-            const res = await fetch('admin_productos.php', { method: 'POST', body: formData });
+            const res = await fetch('../productos/admin_productos.php', { method: 'POST', body: formData });
             const data = await res.json();
             if (data.status === 'success') {
                 closeConfirm();

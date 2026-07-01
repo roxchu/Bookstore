@@ -1,40 +1,37 @@
 <?php
 session_start();
 
-// 1. Incluimos los archivos del DAO y el Modelo (Ajustá las rutas si tus carpetas se llaman distinto)
+// 1. Incluimos los archivos del DAO y el Modelo
 require_once __DIR__ . '/../models/Productos.php';
 require_once __DIR__ . '/../DAO/ProductoDAO.php';
-// Conexión a la base de datos
-$conexion = new mysqli("localhost", "root", "", "books_store");
-if ($conexion->connect_error) {
-    die("Error de conexión: " . $conexion->connect_error);
-}
+require_once __DIR__ . '/../models/genero.php';
+require_once __DIR__ . '/../DAO/generoDAO.php';
+require_once __DIR__ . '/../conexion.php';
+// Conexión centralizada — la misma instancia mysqli que usan todas las vistas
+$conexion = Conexion::conectar();
 
-// 2. Instanciamos el DAO de Producto pasándole la conexión
+// 2. Instanciamos los DAO pasándoles la conexión
 $productoDAO = new ProductoDAO($conexion);
+$generoDAO   = new GeneroDAO($conexion);
 
 // 3. Capturamos los filtros de la URL
 $busqueda = isset($_GET['q']) ? trim($_GET['q']) : '';
 $id_genero = isset($_GET['genero']) ? intval($_GET['genero']) : 0;
 
-// Obtener nombre del género para el encabezado
+// Obtener nombre del género para el encabezado — vía GeneroDAO::getById()
 $nombre_genero = "Todos los libros";
 if ($id_genero > 0) {
-    $stmt_g = $conexion->prepare("SELECT nombre_genero FROM genero WHERE id_genero = ?");
-    $stmt_g->bind_param("i", $id_genero);
-    $stmt_g->execute();
-    $res_g = $stmt_g->get_result();
-    if ($row_g = $res_g->fetch_assoc()) {
-        $nombre_genero = $row_g['nombre_genero'];
+    $genero = $generoDAO->getById($id_genero);
+    if ($genero !== null) {
+        $nombre_genero = $genero->getNombreGenero();
     }
-    $stmt_g->close();
 }
 
 // 4. ¡ACA USAMOS EL DAO! Traemos la lista de objetos Producto
 $lista_libros = $productoDAO->buscarYFiltrar($busqueda, $id_genero);
 
-// Obtener todos los géneros para el menú lateral
-$generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
+// Obtener todos los géneros para el menú lateral — vía GeneroDAO::getAll()
+$generos = $generoDAO->getAll();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -420,13 +417,13 @@ $generos = $conexion->query("SELECT * FROM genero ORDER BY nombre_genero ASC");
         <h3 style="border-bottom: 2px solid var(--gold); padding-bottom: 5px;">Géneros</h3>
         <ul class="genero-list">
             <li><a href="Libros.php">📚 Todos los libros</a></li>
-            <?php while ($g = $generos->fetch_assoc()): ?>
+            <?php foreach ($generos as $g): ?>
                 <li>
-                    <a href="Libros.php?genero=<?= $g['id_genero'] ?>" class="<?= ($g['id_genero'] == $id_genero) ? 'active' : '' ?>">
-                        <?= htmlspecialchars($g['nombre_genero']) ?>
+                    <a href="Libros.php?genero=<?= $g->getIdGenero() ?>" class="<?= ($g->getIdGenero() == $id_genero) ? 'active' : '' ?>">
+                        <?= htmlspecialchars($g->getNombreGenero()) ?>
                     </a>
                 </li>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         </ul>
     </aside>
 
@@ -780,4 +777,3 @@ async function verMisCompras() {
 </div>
 </body>
 </html>
-<?php $conexion->close(); ?>

@@ -3,26 +3,24 @@ class Conexion {
     private static $host = "localhost";
     private static $user = "root";
     private static $pass = "";
-    private static $bd = "books_store";
-    private static $link = null;
+    private static $bd   = "books_store";
+    private static ?mysqli $link = null;
 
-    public static function conectar() {
-        // Usamos el patrón Singleton para no abrir mil conexiones si ya hay una abierta
+    // Patrón Singleton: si ya hay una conexión abierta, la reusamos en vez
+    // de abrir una nueva cada vez que un archivo hace require_once acá.
+    // Todos los DAO están armados sobre mysqli (no PDO), así que la
+    // conexión centralizada también es mysqli para no tener que
+    // reescribir ningún DAO.
+    public static function conectar(): mysqli {
         if (self::$link === null) {
-            try {
-                // Configuramos PDO con el charset utf8 para que no rompa con acentos o eñes
-                self::$link = new PDO(
-                    "mysql:host=" . self::$host . ";dbname=" . self::$bd . ";charset=utf8",
-                    self::$user,
-                    self::$pass
-                );
-                
-                // Le decimos a PDO que lance excepciones si hay errores de SQL
-                self::$link->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                
-            } catch (PDOException $e) {
-                die("Error crítico en la conexión a la base de datos: " . $e->getMessage());
+            self::$link = new mysqli(self::$host, self::$user, self::$pass, self::$bd);
+
+            if (self::$link->connect_error) {
+                die("Error crítico en la conexión a la base de datos: " . self::$link->connect_error);
             }
+
+            // Charset utf8mb4 para que no rompa con acentos, eñes ni emojis
+            self::$link->set_charset("utf8mb4");
         }
         return self::$link;
     }

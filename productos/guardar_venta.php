@@ -3,17 +3,18 @@ session_start();
 
 header('Content-Type: application/json');
 
-// 1. Conexión directa a la base de datos (igual que en Libros.php)
-$conexion = new mysqli("localhost", "root", "", "books_store");
-if ($conexion->connect_error) {
-    echo json_encode(['success' => false, 'error' => 'Error de conexión: ' . $conexion->connect_error]);
-    exit;
-}
+require_once __DIR__ . '/../models/Venta.php';
+require_once __DIR__ . '/../DAO/VentaDAO.php';
+require_once __DIR__ . '/../DAO/UsuarioDAO.php';
+require_once __DIR__ . '/../conexion.php';
+
+// 1. Conexión centralizada — la misma instancia mysqli que usan todas las vistas
+$conexion = Conexion::conectar();
 
 $input = file_get_contents('php://input');
 $data = json_decode($input, true);
 
-// 2. Traemos el ID del usuario usando la misma variable de sesión que Libros.php
+// 2. Traemos el ID del usuario de la sesión
 $uid = $_SESSION['usuario_id'] ?? null;
 
 if (!$uid) {
@@ -21,48 +22,40 @@ if (!$uid) {
     exit;
 }
 
-$total = isset($data['total']) ? floatval($data['total']) : 0;
-$metodo = isset($data['metodo']) ? $data['metodo'] : 'Efectivo';
+$total  = isset($data['total']) ? floatval($data['total']) : 0;
+$metodo = $data['metodo'] ?? 'Efectivo';
 
-// 3. Insertamos la venta de forma limpia
-$sqlVenta = "INSERT INTO ventas (id_usuario, total, metodo_pago) VALUES (?, ?, ?)";
-$stmtVenta = $conexion->prepare($sqlVenta);
+// 3. Armamos el objeto Venta y delegamos el INSERT al DAO
+//    (el id y la fecha los ignora/gestiona la BD, van en 0 / string vacío)
+$venta = new Venta(0, (int) $uid, $total, '', $metodo);
 
-if (!$stmtVenta) {
-    echo json_encode(['success' => false, 'error' => 'Error en la preparación: ' . $conexion->error]);
-    exit;
-}
+$ventaDAO = new VentaDAO($conexion);
+$id_factura = $ventaDAO->registrarVenta($venta);
 
-$stmtVenta->bind_param("ids", $uid, $total, $metodo);
+if ($id_factura > 0) {
+    // 4. Buscamos los datos del usuario para armar el ticket — ahora vía DAO
+    $usuarioDAO = new UsuarioDAO($conexion);
+    $usuario = $usuarioDAO->getById((int) $uid);
 
-if ($stmtVenta->execute()) {
-    $id_factura = $conexion->insert_id;
-
-    // 4. Buscamos los datos del usuario para armar el ticket final
-    $resUser = $conexion->query("SELECT realname, direccion, email FROM usuarios WHERE id = $uid");
-    $userData = $resUser ? $resUser->fetch_assoc() : null;
-
-    // Si tu tabla de usuarios usa 'nombre' en vez de 'realname', lo controlamos:
-    $nombreCliente = $userData['realname'] ?? $userData['nombre'] ?? 'Cliente';
+    $nombreCliente = $usuario ? $usuario->getRealName() : 'Cliente';
+    $direccion     = $usuario ? $usuario->getDireccion() : 'No especificada';
+    $email         = $usuario ? $usuario->getEmail()     : 'Sin email';
 
     echo json_encode([
         'success' => true,
         'id_factura' => $id_factura,
         'usuario' => [
-            'realname' => $nombreCliente,
-            'direccion' => $userData['direccion'] ?? 'No especificada',
-            'email' => $userData['email'] ?? 'Sin email'
+            'realname'  => $nombreCliente,
+            'direccion' => $direccion,
+            'email'     => $email
         ],
         'compra' => [
-            'total' => $total,
+            'total'  => $total,
             'metodo' => $metodo,
-            'fecha' => date('d/m/Y H:i')
+            'fecha'  => date('d/m/Y H:i')
         ]
     ]);
 } else {
-    echo json_encode(['success' => false, 'error' => $stmtVenta->error]);
+    echo json_encode(['success' => false, 'error' => 'No se pudo registrar la venta.']);
 }
-
-$stmtVenta->close();
-$conexion->close();
 ?>

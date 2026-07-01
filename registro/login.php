@@ -7,10 +7,8 @@ require_once '../models/Usuario.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// Aseguramos la conexión 
-if (!isset($mysqli)) {
-    $mysqli = new mysqli("localhost", "root", "", "books_store");
-}
+// Conexión centralizada — la misma instancia mysqli que usan todas las vistas
+$mysqli = Conexion::conectar();
 
 // Capturamos las variables usando los nombres de tu formulario
 $user = trim($_POST['username'] ?? '');
@@ -39,14 +37,17 @@ if ($usuario !== null && password_verify($pass, $usuario->getPass())) {
 
     // Redirección según el rol
     $redirectUrl = "../index.php";
-    if ($usuario->getIdRol() == 1 || $usuario->getIdRol() == 2) {
-        $redirectUrl = "admin/dashboard.php";
+    if ($usuario->getIdRol() == 1) {
+        $redirectUrl = "../paneles/panel_admin.html";
+    } elseif ($usuario->getIdRol() == 2) {
+        $redirectUrl = "../paneles/panel_empleado.html";
     }
 
-    // Retornamos "status" y "message" exactos para el handleLogin()
+    // Retornamos "status" y "message" exactos para el handleLogin(), más la URL de destino
     echo json_encode([
         "status" => "success", 
-        "message" => "¡Sesión iniciada correctamente! Redirigiendo..."
+        "message" => "¡Sesión iniciada correctamente! Redirigiendo...",
+        "redirectUrl" => $redirectUrl
     ]);
     exit;
 } else {

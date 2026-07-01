@@ -12,7 +12,7 @@ class DetalleVentaDAO {
     // convierte una fila en objeto DetalleVenta
     private function hidratar(array $fila): DetalleVenta {
         return new DetalleVenta(
-            (int)  $fila['id'],
+            (int)  $fila['id_detalle'],
             (int)  $fila['id_venta'],
             (int)  $fila['id_producto'],
             (int)  $fila['cantidad'],
@@ -23,7 +23,7 @@ class DetalleVentaDAO {
     // INSERT de un ítem del carrito — se llama una vez por cada producto comprado
     public function registrarDetalle(DetalleVenta $detalle): bool {
         $stmt = $this->conexion->prepare(
-            "INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario)
+            "INSERT INTO detalle_ventas (id_venta, id_producto, cantidad, precio_unitario)
              VALUES (?, ?, ?, ?)"
         );
 
@@ -47,7 +47,7 @@ class DetalleVentaDAO {
     // trae todos los ítems de una venta por su id
     public function getByVenta(int $idVenta): array {
         $stmt = $this->conexion->prepare(
-            "SELECT * FROM detalle_venta WHERE id_venta = ?"
+            "SELECT * FROM detalle_ventas WHERE id_venta = ?"
         );
         $stmt->bind_param("i", $idVenta);
         $stmt->execute();

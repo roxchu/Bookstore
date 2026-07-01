@@ -1,73 +1,75 @@
 <?php
-error_reporting(0);
-ini_set('display_errors', 0);
-require_once 'conexion.php';
+require_once __DIR__ . '/../models/Productos.php';
+require_once __DIR__ . '/../DAO/ProductoDAO.php';
+require_once __DIR__ . '/../conexion.php';
 
-ob_start();
 header('Content-Type: application/json');
 
+// Conexión centralizada — la misma instancia mysqli que usan todas las vistas
+$mysqli = Conexion::conectar();
+
+$productoDAO = new ProductoDAO($mysqli);
 $action = $_REQUEST['action'] ?? '';
 
 switch ($action) {
+
     case 'list':
-        $res = $mysqli->query("SELECT * FROM producto ORDER BY id DESC");
-        $productos = $res->fetch_all(MYSQLI_ASSOC);
-        echo json_encode(['status' => 'success', 'productos' => $productos]);
+        // Todo el SELECT vive en ProductoDAO::getAll()
+        $productos = $productoDAO->getAll();
+        $lista = array_map(fn(Producto $p) => [
+            'id'        => $p->getId(),
+            'nombre'    => $p->getNombre(),
+            'autor'     => $p->getAutor(),
+            'detalle'   => $p->getDetalle(),
+            'precio'    => $p->getPrecio(),
+            'stock'     => $p->getStock(),
+            'id_genero' => $p->getIdGenero(),
+            'imagen'    => $p->getImagen(),
+        ], $productos);
+        echo json_encode(['status' => 'success', 'productos' => $lista]);
         break;
 
     case 'save':
-        $id        = $_POST['id'] ?? '';
+        $id        = (int) ($_POST['id'] ?? 0);
         $nombre    = $_POST['nombre'] ?? '';
+        $autor     = $_POST['autor'] ?? '';
         $detalle   = $_POST['detalle'] ?? '';
-        $precio    = $_POST['precio'] ?? 0;
-        $stock     = $_POST['stock'] ?? 0;
-        $id_genero = $_POST['id_genero'] ?? null;
-        $nombre_foto = null;
+        $precio    = (float) ($_POST['precio'] ?? 0);
+        $stock     = (int) ($_POST['stock'] ?? 0);
+        $id_genero = (int) ($_POST['id_genero'] ?? 0);
 
-        // --- Lógica de Imagen ---
+        // Si estamos editando y no llega una imagen nueva, conservamos la actual
+        $imagen = null;
+        if ($id > 0) {
+            $existente = $productoDAO->getById($id);
+            $imagen = $existente?->getImagen();
+        }
+
+        // --- Lógica de Imagen (se queda acá, es manejo de archivos, no SQL) ---
         if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === 0) {
-            $folder = "img/";
+            $folder = __DIR__ . '/../img/';
             if (!is_dir($folder)) mkdir($folder, 0777, true);
             $ext = pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION);
-            $nombre_foto = time() . "_" . bin2hex(random_bytes(4)) . "." . $ext;
-            move_uploaded_file($_FILES['imagen']['tmp_name'], $folder . $nombre_foto);
+            $imagen = time() . "_" . bin2hex(random_bytes(4)) . "." . $ext;
+            move_uploaded_file($_FILES['imagen']['tmp_name'], $folder . $imagen);
         }
 
-        if (!empty($id)) {
-            // EDITAR: Corregí los espacios en bind_param ("ssidi i" -> "ssidii")
-            if ($nombre_foto) {
-                $stmt = $mysqli->prepare("UPDATE producto SET nombre=?, detalle=?, precio=?, stock=?, id_genero=?, imagen=? WHERE id=?");
-                $stmt->bind_param("ssidisi", $nombre, $detalle, $precio, $stock, $id_genero, $nombre_foto, $id);
-            } else {
-                $stmt = $mysqli->prepare("UPDATE producto SET nombre=?, detalle=?, precio=?, stock=?, id_genero=? WHERE id=?");
-                $stmt->bind_param("ssidii", $nombre, $detalle, $precio, $stock, $id_genero, $id);
-            }
-        } else {
-            // CREAR
-            $stmt = $mysqli->prepare("INSERT INTO producto (nombre, detalle, precio, stock, id_genero, imagen) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssidis", $nombre, $detalle, $precio, $stock, $id_genero, $nombre_foto);
-        }
-        
-        if ($stmt->execute()) {
+        // Armamos el objeto Producto; save() decide INSERT o UPDATE según el id
+        $producto = new Producto($id, $nombre, $autor, $detalle, $precio, $stock, $id_genero, $imagen);
+
+        if ($productoDAO->save($producto)) {
             echo json_encode(['status' => 'success']);
         } else {
             echo json_encode(['status' => 'error', 'message' => $mysqli->error]);
         }
         break;
 
-    // --- AGREGAMOS LA ACCIÓN DE ELIMINAR ---
     case 'delete':
-        $id = $_REQUEST['id'] ?? 0;
-        if ($id > 0) {
-            $stmt = $mysqli->prepare("DELETE FROM producto WHERE id = ?");
-            $stmt->bind_param("i", $id);
-            if ($stmt->execute()) {
-                echo json_encode(['status' => 'success']);
-            } else {
-                echo json_encode(['status' => 'error', 'message' => $mysqli->error]);
-            }
+        $id = (int) ($_REQUEST['id'] ?? 0);
+        if ($id > 0 && $productoDAO->delete($id)) {
+            echo json_encode(['status' => 'success']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'ID no válido']);
+            echo json_encode(['status' => 'error', 'message' => 'ID no válido o no se pudo eliminar']);
         }
         break;
 
@@ -75,5 +77,4 @@ switch ($action) {
         echo json_encode(['status' => 'error', 'message' => 'Acción no válida']);
         break;
 }
-ob_end_flush();
 ?>

@@ -8,10 +8,8 @@ require_once '../models/Usuario.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// Forzamos la conexión mysqli usando las credenciales idénticas a tu conexion.php
-if (!isset($mysqli)) {
-    $mysqli = new mysqli("localhost", "root", "", "books_store");
-}
+// Conexión centralizada — la misma instancia mysqli que usan todas las vistas
+$mysqli = Conexion::conectar();
 
 // ── Recibe datos del formulario ────────────────────────────────
 $nombre    = trim($_POST['nombre']    ?? '');

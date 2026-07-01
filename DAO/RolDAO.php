@@ -14,7 +14,7 @@ class RolDAO {
         return new Rol(
             (int)   $fila['id_rol'],
             (string)$fila['nombre_rol'],
-            (string)$fila['rol_descripcción'] // Nota: Con doble 'cc' como está en tu SQL
+            (string)$fila['rol_descripcion']
         );
     }
 

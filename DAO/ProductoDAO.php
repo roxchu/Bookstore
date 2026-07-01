@@ -23,6 +23,25 @@ class ProductoDAO {
         );
     }
 
+    // trae un solo producto por id — usado por admin_productos.php al editar
+    public function getById(int $id): ?Producto {
+        $stmt = $this->conexion->prepare(
+            "SELECT * FROM producto WHERE id = ?"
+        );
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+
+        if ($resultado->num_rows === 1) {
+            $fila = $resultado->fetch_assoc();
+            $stmt->close();
+            return $this->hidratar($fila);
+        }
+
+        $stmt->close();
+        return null;
+    }
+
     // trae todos los productos
     public function getAll(): array {
         $resultado = $this->conexion->query(

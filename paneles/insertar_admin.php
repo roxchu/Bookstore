@@ -1,33 +1,32 @@
 <?php
-require_once 'conexion.php';
+require_once __DIR__ . '/../models/Usuario.php';
+require_once __DIR__ . '/../DAO/UsuarioDAO.php';
+require_once __DIR__ . '/../conexion.php';
 
-// Función para no repetir código
-function crearAdmin($mysqli, $realname, $username, $password, $email) {
-    // 1. Borrar si ya existe (para evitar errores de duplicado)
-    $mysqli->query("DELETE FROM usuarios WHERE username = '$username' OR email = '$email'");
+// Conexión centralizada — la misma instancia mysqli que usan todas las vistas
+$mysqli = Conexion::conectar();
 
-    // 2. Encriptar contraseña
-    $passHash = password_hash($password, PASSWORD_DEFAULT);
-    $rol_id = 1; // Admin
+$dao = new UsuarioDAO($mysqli);
+
+// Función para no repetir código — ahora todo el SQL vive en UsuarioDAO
+function crearAdmin(UsuarioDAO $dao, string $realname, string $username, string $password, string $email): void {
+    // 1. Borramos si ya existe (para evitar errores de duplicado) usando el DAO
+    $dao->eliminarPorUsernameOEmail($username, $email);
+
+    // 2. Armamos el objeto Usuario con rol 1 (Admin); el hash lo hace el DAO
     $tel = "000";
     $dir = "Administración";
+    $usuario = new Usuario(0, $realname, $username, $password, $email, $tel, $dir, 1);
 
-
-    $stmt = $mysqli->prepare("INSERT INTO usuarios (realname, username, pass, email, telefono, direccion, rol_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssssi", $realname, $username, $passHash, $email, $tel, $dir, $rol_id);
-    
-    if ($stmt->execute()) {
+    // 3. El INSERT vive en registrarUsuario()
+    if ($dao->registrarUsuario($usuario)) {
         echo "✅ Admin <b>$username</b> creado con éxito.<br>";
     } else {
-        echo "❌ Error con $username: " . $mysqli->error . "<br>";
+        echo "❌ Error creando a $username.<br>";
     }
-    $stmt->close();
 }
 
-
-crearAdmin($mysqli, 'Nicole Admin', 'nicole', 'admin123', 'nicole@gmail.com');
-crearAdmin($mysqli, 'Denise Admin', 'denise', 'admin123', 'denise@gmail.com');
-crearAdmin($mysqli, 'Rocio Admin',  'rocio',  'admin123', 'Rocioe@gmail.com');
-
-$mysqli->close();
+crearAdmin($dao, 'Nicole Admin', 'nicole', 'admin123', 'nicole@gmail.com');
+crearAdmin($dao, 'Denise Admin', 'denise', 'admin123', 'denise@gmail.com');
+crearAdmin($dao, 'Rocio Admin',  'rocio',  'admin123', 'Rocioe@gmail.com');
 ?>

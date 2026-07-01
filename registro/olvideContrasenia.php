@@ -1,8 +1,12 @@
 <?php
-require_once '../../config/conexion.php';
-require_once '../../DAO/UsuarioDAO.php';
+require_once __DIR__ . '/../conexion.php';
+require_once __DIR__ . '/../DAO/UsuarioDAO.php';
+require_once __DIR__ . '/../models/Usuario.php';
 
 header('Content-Type: application/json; charset=utf-8');
+
+// Conexión centralizada — la misma instancia mysqli que usan todas las vistas
+$mysqli = Conexion::conectar();
 
 // ── Validación del email (se queda en la vista) ────────────────
 $email = trim($_POST['email'] ?? '');
