@@ -156,6 +156,30 @@ session_start();
             background: #b8973d;
             color: white;
         }
+
+        /* ── ESTILO MEJORADO PARA EL BOTÓN INGRESAR ── */
+        .nav-btn {
+            background: white;
+            color: #1a3d2b; /* Alineado con el color de tu diseño */
+            border: 1.5px solid transparent;
+            padding: 8px 22px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .nav-btn:hover {
+            background: var(--gold);
+            color: white;
+            box-shadow: 0 4px 12px rgba(201, 168, 76, 0.4);
+            transform: translateY(-1px);
+        }
+        .nav-btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 
@@ -175,7 +199,6 @@ session_start();
 
         <div class="header-right">
             <?php if (isset($_SESSION['username'])): ?>
-                <!-- ✅ BOTÓN ADMIN: Solo visible para admins (rol_id = 1) -->
                 <?php if (isset($_SESSION['rol_id']) && $_SESSION['rol_id'] == 1): ?>
                     <a href="paneles/panel_admin.html" class="admin-panel-btn">⚙️ Panel Admin</a>
                 <?php endif; ?>
@@ -326,7 +349,6 @@ session_start();
         let total = 0;
         const usuarioLogueado = <?= isset($_SESSION['username']) ? 'true' : 'false' ?>;
 
-        // ── JAVASCRIPT AGREGADO: FUNCIÓN VER MIS COMPRAS ──
         async function verMisCompras() {
             const modal = document.getElementById('comprasModal');
             const content = document.getElementById('comprasContent');
