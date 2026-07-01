@@ -36,7 +36,7 @@ class Usuario{
         return $this-> id;
     }
 
-    public function getRealName(): string{
+    public function getRealname(): string{
         return $this ->realname;
     }
 
@@ -69,7 +69,7 @@ class Usuario{
      $this -> id = $id;
     }
 
-    public function setRealName(string $realname): void{
+    public function setRealname(string $realname): void{
      $this -> realname = $realname;
     }
 

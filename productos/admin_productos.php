@@ -60,7 +60,9 @@ switch ($action) {
         if ($productoDAO->save($producto)) {
             echo json_encode(['status' => 'success']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => $mysqli->error]);
+            echo json_encode(['status' => 'error', 'message' => 'No se pudo guardar el producto']);
+            // Log el error en el servidor (no en JSON)
+            error_log("Error al guardar producto: " . $mysqli->error); 
         }
         break;
 

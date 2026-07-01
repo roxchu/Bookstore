@@ -96,7 +96,7 @@ session_start();
             cursor: pointer;
         }
 
-        /* ── CSS AGREGADO PARA EL MENÚ DESPLEGABLE DE USUARIO ── */
+        /* ── CSS PARA EL MENÚ DESPLEGABLE DE USUARIO ── */
         .user-dropdown {
             position: relative;
             display: inline-block;
@@ -137,6 +137,25 @@ session_start();
         .user-dropdown:hover .dropdown-menu {
             display: block;
         }
+
+        /* ── BOTÓN ADMIN (solo para admins) ── */
+        .admin-panel-btn {
+            background: var(--gold);
+            color: var(--green-deep);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.3s;
+        }
+        .admin-panel-btn:hover {
+            background: #b8973d;
+            color: white;
+        }
     </style>
 </head>
 
@@ -147,7 +166,7 @@ session_start();
             <span class="logo-sub">Tu librería de confianza</span>
         </a>
 
-        <form action="productos/Libros.php" method="GET" class="search-container">
+        <form action="productos/libros.php" method="GET" class="search-container">
             <div class="search-box">
                 <input type="text" name="q" placeholder="¿Qué historia buscas hoy?">
                 <button type="submit">🔍</button>
@@ -156,6 +175,11 @@ session_start();
 
         <div class="header-right">
             <?php if (isset($_SESSION['username'])): ?>
+                <!-- ✅ BOTÓN ADMIN: Solo visible para admins (rol_id = 1) -->
+                <?php if (isset($_SESSION['rol_id']) && $_SESSION['rol_id'] == 1): ?>
+                    <a href="paneles/panel_admin.html" class="admin-panel-btn">⚙️ Panel Admin</a>
+                <?php endif; ?>
+
                 <div class="user-dropdown">
                     <button class="dropdown-toggle">
                         👤 ¡Hola, <?= htmlspecialchars($_SESSION['username']) ?>! ▼
@@ -209,7 +233,7 @@ session_start();
 
             <a href="productos/libros.php?genero=2" class="book-card">
                 <div class="book-image-wrap">
-                    <img src="https://www.bloomberglinea.com/resizer/v2/AFIIUEY52BAS5OBKCT4LHJV63Q.jpg?auth=3dbb65a477b4e889d4b42083ac073a2127b09d427f4ccdbe723419839da2addd&width=800&height=450&quality=80&smart=true" alt="Terror" class="book-image">
+                    <img src="https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600" alt="Terror" class="book-image">
                 </div>
                 <div class="book-info">
                     <h3 class="book-name">Terror</h3>
@@ -227,19 +251,19 @@ session_start();
 
             <a href="productos/libros.php?genero=5" class="book-card">
                 <div class="book-image-wrap">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs8OSuskP5BtLo0KGXt0JuCU1tibDCpdxvXg&s" alt="Misterio" class="book-image">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs8OSuskP5BtLo0KGXt0JuCU1tibDCpdxvXg&s" alt="Poesia" class="book-image">
                 </div>
                 <div class="book-info">
-                    <h3 class="book-name">Misterio</h3>
+                    <h3 class="book-name">Poesía</h3>
                 </div>
             </a>
 
             <a href="productos/libros.php?genero=6" class="book-card">
                 <div class="book-image-wrap">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZnFxTr-pSLQ-EHoK1tTP8f5evl4RbJeaTzA&s" alt="Poesia" class="book-image">
+                    <img src="https://images.pexels.com/photos/1089842/pexels-photo-1089842.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Aventura" class="book-image">
                 </div>
                 <div class="book-info">
-                    <h3 class="book-name">Poesía</h3>
+                    <h3 class="book-name">Aventura</h3>
                 </div>
             </a>
         </div>
@@ -310,7 +334,6 @@ session_start();
             content.innerHTML = '<p style="text-align:center; color:#666;">Cargando historial...</p>';
 
             try {
-                // Como index.php está afuera, apunta a la subcarpeta productos/
                 const response = await fetch('productos/mis_compras.php');
                 const result = await response.json();
 

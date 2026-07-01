@@ -73,7 +73,9 @@ class ProductoDAO {
 
     // busca por nombre o autor
     public function search(string $term): array {
-        $like = "%$term%";
+        if (strlen($term) < 2) {
+            return []; // Requiere mínimo 2 caracteres
+        }
         $stmt = $this->conexion->prepare(
             "SELECT * FROM producto WHERE nombre LIKE ? OR autor LIKE ? ORDER BY id DESC"
         );
@@ -140,7 +142,13 @@ class ProductoDAO {
     
     // Busca por término dentro de un género específico o en general
     public function buscarYFiltrar(string $term, int $idGenero = 0): array {
-        $like = "%$term%";
+        // Solo validar si hay un término de búsqueda
+        if (!empty($term) && strlen($term) < 2) {
+            return []; // Solo rechazar si escribió algo MUY corto
+        }
+        
+        // Preparar el LIKE solo si hay búsqueda
+        $like = !empty($term) ? "%$term%" : "%";
         
         if ($idGenero > 0) {
             $stmt = $this->conexion->prepare(

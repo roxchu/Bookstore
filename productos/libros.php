@@ -371,7 +371,7 @@ $generos = $generoDAO->getAll();
         <span class="logo-sub">Tu librería de confianza</span>
     </a>
 
-    <form action="Libros.php" method="GET" class="search-container">
+    <form action="libros.php" method="GET" class="search-container">
         <?php if($id_genero > 0): ?>
             <input type="hidden" name="genero" value="<?= $id_genero ?>">
         <?php endif; ?>
@@ -416,10 +416,10 @@ $generos = $generoDAO->getAll();
     <aside>
         <h3 style="border-bottom: 2px solid var(--gold); padding-bottom: 5px;">Géneros</h3>
         <ul class="genero-list">
-            <li><a href="Libros.php">📚 Todos los libros</a></li>
+            <li><a href="libros.php">📚 Todos los libros</a></li>
             <?php foreach ($generos as $g): ?>
                 <li>
-                    <a href="Libros.php?genero=<?= $g->getIdGenero() ?>" class="<?= ($g->getIdGenero() == $id_genero) ? 'active' : '' ?>">
+                    <a href="libros.php?genero=<?= $g->getIdGenero() ?>" class="<?= ($g->getIdGenero() == $id_genero) ? 'active' : '' ?>">
                         <?= htmlspecialchars($g->getNombreGenero()) ?>
                     </a>
                 </li>
@@ -450,7 +450,12 @@ $generos = $generoDAO->getAll();
 
                     <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 15px;">
                         <span class="book-price">$<?= number_format($libro->getPrecio(), 2) ?></span>
-                        <button class="add-btn" onclick="addToCart('<?= htmlspecialchars(addslashes($libro->getNombre())) ?>', <?= $libro->getPrecio() ?>)">+ Carrito</button>
+                        <button class="add-btn" 
+                            data-name="<?= htmlspecialchars(json_encode($libro->getNombre()), ENT_QUOTES) ?>"
+                            data-price="<?= htmlspecialchars($libro->getPrecio(), ENT_QUOTES) ?>"
+                            onclick="addToCart(this.dataset.name, parseFloat(this.dataset.price))">
+                            + Carrito
+                        </button>                    
                     </div>
                 </div>
             </div>

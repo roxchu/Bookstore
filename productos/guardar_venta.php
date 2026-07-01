@@ -1,53 +1,86 @@
 <?php
 session_start();
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../models/Venta.php';
 require_once __DIR__ . '/../DAO/VentaDAO.php';
 require_once __DIR__ . '/../DAO/UsuarioDAO.php';
 require_once __DIR__ . '/../conexion.php';
 
-// 1. Conexión centralizada — la misma instancia mysqli que usan todas las vistas
-$conexion = Conexion::conectar();
+try {
+    // 1. Validar sesión
+    $uid = $_SESSION['usuario_id'] ?? null;
+    if (!$uid) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'error' => 'No hay sesión de usuario activa.']);
+        exit;
+    }
 
-$input = file_get_contents('php://input');
-$data = json_decode($input, true);
+    // 2. Obtener datos del POST
+    $input = file_get_contents('php://input');
+    $data = json_decode($input, true);
 
-// 2. Traemos el ID del usuario de la sesión
-$uid = $_SESSION['usuario_id'] ?? null;
+    if (!$data) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'JSON inválido']);
+        exit;
+    }
 
-if (!$uid) {
-    echo json_encode(['success' => false, 'error' => 'No hay sesión de usuario activa.']);
-    exit;
-}
+    $total  = isset($data['total']) ? floatval($data['total']) : 0;
+    $metodo = $data['metodo'] ?? 'Efectivo';
+    $items  = $data['items'] ?? [];
 
-$total  = isset($data['total']) ? floatval($data['total']) : 0;
-$metodo = $data['metodo'] ?? 'Efectivo';
+    // 3. Validaciones
+    if ($total <= 0) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Total debe ser mayor a 0']);
+        exit;
+    }
 
-// 3. Armamos el objeto Venta y delegamos el INSERT al DAO
-//    (el id y la fecha los ignora/gestiona la BD, van en 0 / string vacío)
-$venta = new Venta(0, (int) $uid, $total, '', $metodo);
+    if (empty($items)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Carrito vacío']);
+        exit;
+    }
 
-$ventaDAO = new VentaDAO($conexion);
-$id_factura = $ventaDAO->registrarVenta($venta);
+    // 4. Conectar a la BD
+    $conexion = Conexion::conectar();
+    if (!$conexion) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Error de conexión a BD']);
+        exit;
+    }
 
-if ($id_factura > 0) {
-    // 4. Buscamos los datos del usuario para armar el ticket — ahora vía DAO
+    // 5. Crear y guardar venta
+    $venta = new Venta(0, (int) $uid, $total, '', $metodo);
+    $ventaDAO = new VentaDAO($conexion);
+    $id_factura = $ventaDAO->registrarVenta($venta);
+
+    if ($id_factura <= 0) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'No se pudo registrar la venta']);
+        exit;
+    }
+
+    // 6. Obtener datos del usuario para el ticket
     $usuarioDAO = new UsuarioDAO($conexion);
     $usuario = $usuarioDAO->getById((int) $uid);
 
-    $nombreCliente = $usuario ? $usuario->getRealName() : 'Cliente';
-    $direccion     = $usuario ? $usuario->getDireccion() : 'No especificada';
-    $email         = $usuario ? $usuario->getEmail()     : 'Sin email';
+    if (!$usuario) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Usuario no encontrado']);
+        exit;
+    }
 
+    // 7. Respuesta exitosa
     echo json_encode([
         'success' => true,
         'id_factura' => $id_factura,
         'usuario' => [
-            'realname'  => $nombreCliente,
-            'direccion' => $direccion,
-            'email'     => $email
+            'realname'  => $usuario->getRealname(),
+            'direccion' => $usuario->getDireccion(),
+            'email'     => $usuario->getEmail()
         ],
         'compra' => [
             'total'  => $total,
@@ -55,7 +88,13 @@ if ($id_factura > 0) {
             'fecha'  => date('d/m/Y H:i')
         ]
     ]);
-} else {
-    echo json_encode(['success' => false, 'error' => 'No se pudo registrar la venta.']);
+
+} catch (Exception $e) {
+    http_response_code(500);
+    error_log("Error en guardar_venta.php: " . $e->getMessage());
+    echo json_encode([
+        'success' => false,
+        'error' => 'Error del servidor: ' . $e->getMessage()
+    ]);
 }
 ?>
