@@ -234,61 +234,51 @@ session_start();
         <h2 class="section-label">Novedades por Género</h2>
         <div class="section-divider"></div>
 
-        <div class="book-showcase">
-            <a href="productos/libros.php?genero=3" class="book-card">
-                <div class="book-image-wrap">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSRLoOoI0K8Xq-BKcwFq-mK4GCcDY4w8W54A&s" alt="Romanticismo" class="book-image">
-                    <span class="book-badge">Destacado</span>
-                </div>
-                <div class="book-info">
-                    <h3 class="book-name">Romanticismo</h3>
-                </div>
-            </a>
+  <div class="book-showcase">
+            <?php
+            try {
+                // Conexión 
+                $pdo = new PDO('mysql:host=localhost;dbname=books_store;charset=utf8', 'root', '');
+                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                
+                
+                $imagenes_generos = [
+                    1 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWx-rnxpTtxMdg2AtIMLEQBBAJtdLpepvEhg&s", // Fantasía
+                    2 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHezajmRuG5FyayYnDrEEtEeuexc6GuESgOxm_uMQxUF04oFBsyb8Tz_6B&s=10",         // Terror
+                    3 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSRLoOoI0K8Xq-BKcwFq-mK4GCcDY4w8W54A&s", // Romance
+                    4 => "https://thumbs.dreamstime.com/b/m%C3%A1scaras-del-teatro-de-la-comedia-y-de-la-tragedia-21958013.jpg", // Comedia
+                    5 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs8OSuskP5BtLo0KGXt0JuCU1tibDCpdxvXg&s", // Poesía
+                    6 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6Jt02Bx6Dt3Q-GqrRCdD5Qj3IpfVwWm4p2A3iRU8Kwev3x9EG-bE57D4&s=10" // Aventura
+                ];
 
-            <a href="productos/libros.php?genero=1" class="book-card">
-                <div class="book-image-wrap">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWx-rnxpTtxMdg2AtIMLEQBBAJtdLpepvEhg&s" alt="Ficcion" class="book-image">
-                </div>
-                <div class="book-info">
-                    <h3 class="book-name">Ficción</h3>
-                </div>
-            </a>
+                
+                $stmt = $pdo->query("SELECT id_genero, nombre_genero, destacado FROM genero ORDER BY destacado DESC, id_genero ASC");
+                
+                while ($genero = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $id_genero = $genero['id_genero'];
+                    $nombre_genero = htmlspecialchars($genero['nombre_genero']);
+                    $es_destacado = ($genero['destacado'] == 1);
+                    $img_g = $imagenes_generos[$id_genero] ?? "https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600";
+                    ?>
+                    
+                    <a href="productos/libros.php?genero=<?= $id_genero ?>" class="book-card">
+                        <div class="book-image-wrap">
+                            <img src="<?= $img_g ?>" alt="<?= $nombre_genero ?>" class="book-image">
+                            <?php if ($es_destacado): ?>
+                                <span class="book-badge">Destacado</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="book-info">
+                            <h3 class="book-name"><?= $nombre_genero ?></h3>
+                        </div>
+                    </a>
 
-            <a href="productos/libros.php?genero=2" class="book-card">
-                <div class="book-image-wrap">
-                    <img src="https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600" alt="Terror" class="book-image">
-                </div>
-                <div class="book-info">
-                    <h3 class="book-name">Terror</h3>
-                </div>
-            </a>
-
-            <a href="productos/libros.php?genero=4" class="book-card">
-                <div class="book-image-wrap">
-                    <img src="https://thumbs.dreamstime.com/b/m%C3%A1scaras-del-teatro-de-la-comedia-y-de-la-tragedia-21958013.jpg" alt="Comedia" class="book-image">
-                </div>
-                <div class="book-info">
-                    <h3 class="book-name">Comedia</h3>
-                </div>
-            </a>
-
-            <a href="productos/libros.php?genero=5" class="book-card">
-                <div class="book-image-wrap">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs8OSuskP5BtLo0KGXt0JuCU1tibDCpdxvXg&s" alt="Poesia" class="book-image">
-                </div>
-                <div class="book-info">
-                    <h3 class="book-name">Poesía</h3>
-                </div>
-            </a>
-
-            <a href="productos/libros.php?genero=6" class="book-card">
-                <div class="book-image-wrap">
-                    <img src="https://images.pexels.com/photos/1089842/pexels-photo-1089842.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Aventura" class="book-image">
-                </div>
-                <div class="book-info">
-                    <h3 class="book-name">Aventura</h3>
-                </div>
-            </a>
+                    <?php
+                }
+            } catch (PDOException $e) {
+                echo "<p style='color:red; text-align:center;'>Error al cargar los géneros: " . $e->getMessage() . "</p>";
+            }
+            ?>
         </div>
 
         <h2 class="section-label">Por qué elegirnos</h2>

@@ -1,5 +1,4 @@
-
-        :root {
+:root {
             --green-deep:   #1a3d2b;
             --green-mid:    #2d6a4f;
             --green-accent: #52b788;
@@ -296,4 +295,3 @@
             text-decoration: none;
         }
         .login-link a:hover { text-decoration: underline; }
-   
