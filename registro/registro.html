@@ -6,6 +6,7 @@
     <title>Crear cuenta — Bookstore</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
    <link rel="stylesheet" href="estilos_registro/registro.css">
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
 
@@ -62,47 +63,50 @@
                 </div>
             </div>
 
-            <!-- PASO 2: Username y contraseñas -->
-            <div class="step-panel" id="step-2">
-                <p class="step-title">Elegí tu usuario y contraseña</p>
+<!-- PASO 2: Username y contraseñas -->
+<div class="step-panel" id="step-2">
+    <p class="step-title">Elegí tu usuario y contraseña</p>
 
-                <div class="form-group">
-                    <label for="user">Nombre de usuario</label>
-                    <input type="text" id="user" placeholder="Ej: mariag99">
-                    <div class="field-error" id="err-user"></div>
-                </div>
+    <div class="form-group">
+        <label for="user">Nombre de usuario</label>
+        <input type="text" id="user" placeholder="Ej: mariag99">
+        <div class="field-error" id="err-user"></div>
+    </div>
 
-                <div class="form-group">
-                    <label for="pass">
-                        Contraseña
-                        <span id="info-icon" onclick="togglePasswordRules()" title="Ver requisitos" style="display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; background:var(--green-accent); color:white; border-radius:50%; font-size:0.65rem; font-weight:700; cursor:pointer; margin-left:6px;">i</span>
-                    </label>
-                    <div id="password-rules" style="display:none; background:var(--green-pale); border-left:3px solid var(--green-accent); border-radius:4px; padding:0.6rem 0.9rem; font-size:0.8rem; color:var(--text-dark); margin-bottom:0.5rem;">
-                        <p style="font-weight:700; margin-bottom:0.3rem;">La contraseña debe tener:</p>
-                        <ul style="padding-left:1.2rem; line-height:1.8;">
-                            <li>Al menos 8 caracteres</li>
-                            <li>Una letra mayúscula (A-Z)</li>
-                            <li>Una letra minúscula (a-z)</li>
-                            <li>Un número (0-9)</li>
-                            <li>Un símbolo especial (!@#$%...)</li>
-                        </ul>
-                    </div>
-                    <input type="password" id="pass" placeholder="Mínimo 8 caracteres">
-                    <div class="field-error" id="err-pass"></div>
-                </div>
+<div class="form-group">
+    <label for="pass">Contraseña</label>
+    <div class="password-wrapper">
+        <input type="password" id="pass" placeholder="Mínimo 8 caracteres">
+        <i class="bi bi-eye toggle-password-icon" onclick="togglePasswordVisibility('pass', this)"></i>
+    </div>
+    
+    <div id="password-rules-box">
+        <p>La contraseña debe tener:</p>
+        <ul>
+            <li id="req-length" class="invalid"><i class="bi bi-x-circle-fill me-1"></i> Al menos 8 caracteres</li>
+            <li id="req-upper" class="invalid"><i class="bi bi-x-circle-fill me-1"></i> Una letra mayúscula (A-Z)</li>
+            <li id="req-lower" class="invalid"><i class="bi bi-x-circle-fill me-1"></i> Una letra minúscula (a-z)</li>
+            <li id="req-number" class="invalid"><i class="bi bi-x-circle-fill me-1"></i> Un número (0-9)</li>
+            <li id="req-symbol" class="invalid"><i class="bi bi-x-circle-fill me-1"></i> Un símbolo especial (!@#$%...)</li>
+        </ul>
+    </div>
+    <div class="field-error" id="err-pass"></div>
+</div>
 
-                <div class="form-group">
-                    <label for="rpass">Repetir contraseña</label>
-                    <input type="password" id="rpass" placeholder="Repetí tu contraseña">
-                    <div class="field-error" id="err-rpass"></div>
-                </div>
+<div class="form-group">
+    <label for="rpass">Repetir contraseña</label>
+    <div class="password-wrapper">
+        <input type="password" id="rpass" placeholder="Repetí tu contraseña">
+        <i class="bi bi-eye toggle-password-icon" onclick="togglePasswordVisibility('rpass', this)"></i>
+    </div>
+    <div class="field-error" id="err-rpass"></div>
+</div>
 
-                <div class="btn-row">
-                    <button class="btn btn-secondary" onclick="goTo(1)">← Atrás</button>
-                    <button class="btn btn-primary" onclick="goTo(3)">Siguiente →</button>
-                </div>
-            </div>
-
+    <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goTo(1)">← Atrás</button>
+        <button class="btn btn-primary" onclick="goTo(3)">Siguiente →</button>
+    </div>
+</div>
             <!-- PASO 3: Email, teléfono, dirección -->
             <div class="step-panel" id="step-3">
                 <p class="step-title">¿Cómo te contactamos?</p>
@@ -256,7 +260,49 @@
         const rules = document.getElementById('password-rules');
         rules.style.display = rules.style.display === 'none' ? 'block' : 'none';
     }
+// Función para mostrar / ocultar la contraseña
+function togglePasswordVisibility(inputId, iconElement) {
+    const passwordInput = document.getElementById(inputId);
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        iconElement.classList.remove('bi-eye');
+        iconElement.classList.add('bi-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        iconElement.classList.remove('bi-eye-slash');
+        iconElement.classList.add('bi-eye');
+    }
+}
 
+// Escuchar el evento 'input' en tiempo real para validar requisitos
+document.getElementById('pass').addEventListener('input', function() {
+    const value = this.value;
+
+    // Reglas de validación (Regex)
+    const checks = {
+        'req-length': value.length >= 8,
+        'req-upper': /[A-Z]/.test(value),
+        'req-lower': /[a-z]/.test(value),
+        'req-number': /[0-9]/.test(value),
+        'req-symbol': /[^\w]/.test(value)
+    };
+
+    // Actualizar visualmente cada requisito
+    for (const [id, isValid] of Object.entries(checks)) {
+        const li = document.getElementById(id);
+        const icon = li.querySelector('i');
+        
+        if (isValid) {
+            li.classList.remove('invalid');
+            li.classList.add('valid');
+            icon.className = 'bi bi-check-circle-fill'; // Icono de check (tildo)
+        } else {
+            li.classList.remove('valid');
+            li.classList.add('invalid');
+            icon.className = 'bi bi-x-circle-fill'; // Icono de cruz
+        }
+    }
+});
     async function registrar() {
         limpiarErrores('err-email', 'err-telefono', 'err-direccion');
         document.getElementById('globalError').style.display = 'none';
