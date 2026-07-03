@@ -19,7 +19,9 @@ class ProductoDAO {
             (float) $fila['precio'],
             (int)   $fila['stock'],
             (int)   $fila['id_genero'],
-            $fila['imagen'] ?? null
+            $fila['imagen'] ?? null,
+            $fila['imagen2'] ?? null,
+            $fila['imagen3'] ?? null
         );
     }
 
@@ -95,8 +97,8 @@ class ProductoDAO {
     public function save(Producto $producto): bool {
         if ($producto->getId() === 0) {
             $stmt = $this->conexion->prepare(
-                "INSERT INTO producto (nombre, autor, detalle, precio, stock, id_genero, imagen)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO producto (nombre, autor, detalle, precio, stock, id_genero, imagen, imagen2, imagen3)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             $nombre   = $producto->getNombre();
             $autor    = $producto->getAutor();
@@ -105,11 +107,12 @@ class ProductoDAO {
             $stock    = $producto->getStock();
             $idGenero = $producto->getIdGenero();
             $imagen   = $producto->getImagen();
-            // s=string d=double(float) i=int
-            $stmt->bind_param("sssdiss", $nombre, $autor, $detalle, $precio, $stock, $idGenero, $imagen);
+            $imagen2  = $producto->getImagen2();
+            $imagen3  = $producto->getImagen3();
+            $stmt->bind_param("sssdisss", $nombre, $autor, $detalle, $precio, $stock, $idGenero, $imagen, $imagen2, $imagen3);
         } else {
             $stmt = $this->conexion->prepare(
-                "UPDATE producto SET nombre=?, autor=?, detalle=?, precio=?, stock=?, id_genero=?, imagen=?
+                "UPDATE producto SET nombre=?, autor=?, detalle=?, precio=?, stock=?, id_genero=?, imagen=?, imagen2=?, imagen3=?
                  WHERE id=?"
             );
             $nombre   = $producto->getNombre();
@@ -119,9 +122,10 @@ class ProductoDAO {
             $stock    = $producto->getStock();
             $idGenero = $producto->getIdGenero();
             $imagen   = $producto->getImagen();
+            $imagen2  = $producto->getImagen2();
+            $imagen3  = $producto->getImagen3();
             $id       = $producto->getId();
-            // s=string d=double(float) i=int
-            $stmt->bind_param("sssdisi", $nombre, $autor, $detalle, $precio, $stock, $idGenero, $imagen, $id);
+            $stmt->bind_param("sssdisssi", $nombre, $autor, $detalle, $precio, $stock, $idGenero, $imagen, $imagen2, $imagen3, $id);
         }
 
         $resultado = $stmt->execute();
@@ -173,3 +177,4 @@ class ProductoDAO {
         return $productos;
     }
 }
+

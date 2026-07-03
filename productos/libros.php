@@ -75,7 +75,6 @@ $generos = $generoDAO->getAll();
             gap: 20px;
         }
 
-        /* Logo a la izquierda */
         .logo {
             flex-shrink: 0;
             display: flex;
@@ -96,7 +95,6 @@ $generos = $generoDAO->getAll();
             text-transform: uppercase;
         }
 
-        /* Barra de búsqueda en el medio */
         .search-container {
             flex: 1;
             display: flex;
@@ -145,7 +143,6 @@ $generos = $generoDAO->getAll();
             justify-content: center;
         }
 
-        /* Derecha: Login y Carrito */
         .header-right {
             display: flex;
             align-items: center;
@@ -153,7 +150,7 @@ $generos = $generoDAO->getAll();
             flex-shrink: 0;
         }
 
-        .login-btn {
+        .login-btn, .nav-btn {
             background: transparent;
             color: var(--cream);
             border: 1.5px solid var(--green-accent);
@@ -165,7 +162,7 @@ $generos = $generoDAO->getAll();
             text-decoration: none;
             transition: 0.3s;
         }
-        .login-btn:hover { background: var(--green-accent); color: var(--green-deep); }
+        .login-btn:hover, .nav-btn:hover { background: var(--green-accent); color: var(--green-deep); }
 
         .cart-container { position: relative; cursor: pointer; }
         #carrito { width: 30px; filter: invert(1); }
@@ -180,11 +177,11 @@ $generos = $generoDAO->getAll();
         /* ── RESTO DEL DISEÑO ── */
         .genero-hero {
             background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 100%);
-            padding: 3rem;
+            padding: 2rem 3rem;
             color: var(--cream);
         }
-        .hero-title { font-family: 'Playfair Display', serif; font-size: 3rem; }
-        .hero-line { width: 50px; height: 3px; background: var(--gold); margin: 1rem 0; }
+        .hero-title { font-family: 'Playfair Display', serif; font-size: 2rem; }
+        .hero-line { width: 50px; height: 3px; background: var(--gold); margin: 0.8rem 0; }
 
         .page-wrapper {
             max-width: 1300px; margin: 0 auto; padding: 2rem;
@@ -201,7 +198,7 @@ $generos = $generoDAO->getAll();
         }
 
         .books-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1.5rem;
         }
         .book-card {
             background: white; border-radius: 8px; overflow: hidden;
@@ -211,156 +208,334 @@ $generos = $generoDAO->getAll();
         .book-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
         .book-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
         .book-title { font-family: 'Playfair Display', serif; font-size: 1rem; margin-bottom: 5px; }
-        .book-price { font-weight: bold; color: var(--green-mid); font-size: 1.1rem; }
-        
-        .add-btn {
-            background: var(--green-deep); color: white; border: none;
-            padding: 8px; border-radius: 4px; cursor: pointer; margin-top: 10px;
+        .book-author { font-size: 0.8rem; color: #666; margin-bottom: 10px; }
+
+        /* ── ZONA DE PRECIO Y BOTÓN — apiladas para que el botón nunca se achique ── */
+        .book-footer {
+            margin-top: auto;
+            padding-top: 15px;
+        }
+        .book-price {
+            display: block;
+            font-weight: bold;
+            color: var(--green-mid);
+            font-size: 1.15rem;
+            margin-bottom: 10px;
+        }
+
+        .view-desc-btn {
+            width: 100%;
+            background: var(--green-deep);
+            color: white;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: 0.3s;
+        }
+
+        .view-desc-btn:hover {
+            background: var(--green-mid);
         }
 
         .cart-modal { display: none; position: fixed; top: 0; right: 0; width: 350px; height: 100vh; background: white; z-index: 2000; box-shadow: -5px 0 15px rgba(0,0,0,0.1); flex-direction: column; }
         .cart-modal.open { display: flex; }
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--green-mid); color: white; padding: 10px 20px; border-radius: 50px; display: none; z-index: 3000; }
 
-        /* Estilo del desplegable */
-.book-description {
-    margin-top: 10px;
-    font-size: 0.85rem;
-    color: #444;
-    border-top: 1px solid var(--green-pale);
-    padding-top: 5px;
-}
+        /* ── MODAL DESCRIPCIÓN (OVERLAY) ── */
+        .description-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 4000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
 
-.book-description summary {
-    cursor: pointer;
-    font-weight: bold;
-    color: var(--green-mid);
-    outline: none;
-    list-style: none; /* Quita la flechita por defecto en algunos navegadores */
-}
+        .description-overlay.open {
+            display: flex;
+        }
 
-.book-description summary::-webkit-details-marker {
-    display: none; /* Quita la flechita en Safari/Chrome */
-}
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
 
-.book-description summary:hover {
-    color: var(--gold);
-}
+        .description-modal-content {
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
 
-.book-description p {
-    background: var(--green-pale);
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 5px;
-    line-height: 1.4;
-}
-.invoice-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.7);
-    display: none; /* Se activa con JS */
-    justify-content: center;
-    align-items: center;
-    z-index: 3000;
-}
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-.invoice-box {
-    background: white;
-    width: 90%;
-    max-width: 450px;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
+        /* ── CARRUSEL DE IMÁGENES (tapa / contratapa / perspectiva) ── */
+        .description-modal-carousel {
+            flex-shrink: 0;
+            width: 280px;
+            height: 380px;
+            border-radius: 12px 0 0 12px;
+            background: #eee;
+            position: relative;
+            overflow: hidden;
+        }
 
-.invoice-header {
-    background: var(--green-deep);
-    color: var(--gold);
-    padding: 1.5rem;
-    text-align: center;
-    position: relative;
-}
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
 
-.invoice-body {
-    padding: 2rem;
-    color: var(--text-dark);
-    font-family: 'Courier New', Courier, monospace; /* Estilo ticket */
-}
+        .carousel-slide {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
 
-.invoice-item {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    border-bottom: 1px dashed #ccc;
-}
+        .carousel-slide.active {
+            opacity: 1;
+        }
 
-.confirm-btn {
-    width: 100%;
-    background: var(--gold);
-    color: var(--green-deep);
-    border: none;
-    padding: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 1rem;
-}
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-.confirm-btn:hover { background: #b8973d; }
-/* Esto hace que el modal de checkout se comporte como el del carrito */
-#checkoutModal {
-    display: none; 
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 350px;
-    height: 100vh;
-    background: white;
-    z-index: 2500;
-    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
-    flex-direction: column;
-}
+        .carousel-nav {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
 
-#checkoutModal.open {
-    display: flex;
-}
-.user-dropdown {
-    position: relative;
-    display: inline-block;
-}
-.dropdown-toggle {
-    background: white;
-    color: #1a3d2b;
-    border: 1px solid #1a3d2b;
-    padding: 8px 15px;
-    font-weight: bold;
-    border-radius: 20px;
-    cursor: pointer;
-}
-.dropdown-menu {
-    display: none;
-    position: absolute;
-    right: 0;
-    background-color: white;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
-    z-index: 1000;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-top: 5px;
-}
-.dropdown-menu a {
-    color: #333;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-    font-size: 0.85rem;
-}
-.dropdown-menu a:hover {
-    background-color: #f5f5f5;
-}
-.user-dropdown:hover .dropdown-menu {
-    display: block;
-}
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+            padding: 0;
+        }
+
+        .carousel-dot.active {
+            background: white;
+            transform: scale(1.3);
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+            border: none;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            z-index: 10;
+            transition: background 0.3s;
+        }
+
+        .carousel-btn:hover { background: rgba(0, 0, 0, 0.7); }
+        .carousel-btn.prev { left: 10px; }
+        .carousel-btn.next { right: 10px; }
+
+        .description-modal-info {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .description-modal-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--green-deep);
+            margin: 0;
+        }
+
+        .description-modal-author {
+            font-size: 1rem;
+            color: var(--green-mid);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .description-modal-price {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--green-mid);
+        }
+
+        .description-modal-description {
+            color: #555;
+            line-height: 1.6;
+            flex: 1;
+            border-top: 1px solid var(--green-pale);
+            border-bottom: 1px solid var(--green-pale);
+            padding: 1rem 0;
+        }
+
+        .description-modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .description-modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-close-desc { background: #eee; color: var(--text-dark); }
+        .btn-close-desc:hover { background: #ddd; }
+        .btn-add-desc { background: var(--green-deep); color: white; }
+        .btn-add-desc:hover { background: var(--green-mid); }
+
+        @media (max-width: 768px) {
+            .description-modal-content { flex-direction: column; max-width: 95%; }
+            .description-modal-carousel { width: 100%; height: 300px; border-radius: 12px 12px 0 0; }
+            .description-modal-info { padding: 1.5rem; }
+            .description-modal-title { font-size: 1.4rem; }
+        }
+
+        .invoice-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+
+        .invoice-box {
+            background: white;
+            width: 90%;
+            max-width: 450px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .invoice-header {
+            background: var(--green-deep);
+            color: var(--gold);
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .invoice-body {
+            padding: 2rem;
+            color: var(--text-dark);
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .invoice-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .confirm-btn {
+            width: 100%;
+            background: var(--gold);
+            color: var(--green-deep);
+            border: none;
+            padding: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .confirm-btn:hover { background: #b8973d; }
+
+        #checkoutModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 350px;
+            height: 100vh;
+            background: white;
+            z-index: 2500;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+            flex-direction: column;
+        }
+
+        #checkoutModal.open { display: flex; }
+
+        .user-dropdown { position: relative; display: inline-block; }
+        .dropdown-toggle {
+            background: white;
+            color: #1a3d2b;
+            border: 1px solid #1a3d2b;
+            padding: 8px 15px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+            z-index: 1000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .dropdown-menu a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.85rem;
+        }
+        .dropdown-menu a:hover { background-color: #f5f5f5; }
+        .user-dropdown:hover .dropdown-menu { display: block; }
     </style>
 </head>
 <body>
@@ -436,33 +611,54 @@ $generos = $generoDAO->getAll();
                 <div class="book-img-wrap">
                     <img src="../img/<?= htmlspecialchars($libro->getImagen()) ?>" onerror="this.src='https://via.placeholder.com/200x300?text=Libro'">
                 </div>
-                
+
                 <div class="book-body">
                     <h3 class="book-title"><?= htmlspecialchars($libro->getNombre()) ?></h3>
-                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">por <?= htmlspecialchars($libro->getAutor()) ?></p>
+                    <p class="book-author">por <?= htmlspecialchars($libro->getAutor()) ?></p>
 
-                    <details class="book-description">
-                        <summary>Ver descripción</summary>
-                        <div class="description-text">
-                            <?= htmlspecialchars($libro->getDetalle() ?? 'Sin descripción disponible.') ?>
-                        </div>
-                    </details>
-
-                    <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 15px;">
-                        <span class="book-price">$<?= number_format($libro->getPrecio(), 2) ?></span>
-                        <button class="add-btn" 
-                            data-name="<?= htmlspecialchars(json_encode($libro->getNombre()), ENT_QUOTES) ?>"
-                            data-price="<?= htmlspecialchars($libro->getPrecio(), ENT_QUOTES) ?>"
-                            onclick="addToCart(this.dataset.name, parseFloat(this.dataset.price))">
-                            + Carrito
-                        </button>                    
+                    <div class="book-footer">
+                        <span class="book-price">$<?= number_format($libro->getPrecio(), 2, ',', '.') ?></span>
+                        <button class="view-desc-btn"
+                            data-id="<?= $libro->getId() ?>"
+                            data-nombre="<?= htmlspecialchars(json_encode($libro->getNombre()), ENT_QUOTES) ?>"
+                            data-autor="<?= htmlspecialchars($libro->getAutor(), ENT_QUOTES) ?>"
+                            data-detalle="<?= htmlspecialchars($libro->getDetalle() ?? 'Sin descripción disponible.', ENT_QUOTES) ?>"
+                            data-precio="<?= htmlspecialchars($libro->getPrecio(), ENT_QUOTES) ?>"
+                            data-imagen1="<?= htmlspecialchars($libro->getImagen() ?? '', ENT_QUOTES) ?>"
+                            data-imagen2="<?= htmlspecialchars($libro->getImagen2() ?? '', ENT_QUOTES) ?>"
+                            data-imagen3="<?= htmlspecialchars($libro->getImagen3() ?? '', ENT_QUOTES) ?>"
+                            onclick="abrirModal(this)">
+                            Ver descripción
+                        </button>
                     </div>
                 </div>
             </div>
         <?php endforeach; ?>
     <?php endif; ?>
 </section>
-    
+
+</div>
+
+<!-- MODAL DE DESCRIPCIÓN -->
+<div class="description-overlay" id="descriptionOverlay">
+    <div class="description-modal-content">
+        <div class="description-modal-carousel" id="modalCarousel">
+            <div class="carousel-container" id="carouselContainer">
+                <!-- Los slides se generan dinámicamente por JS -->
+            </div>
+            <div class="carousel-nav" id="carouselNav"></div>
+        </div>
+        <div class="description-modal-info">
+            <h2 class="description-modal-title" id="modalTitle">Título</h2>
+            <p class="description-modal-author" id="modalAuthor">Autor</p>
+            <p class="description-modal-price" id="modalPrice">$0,00</p>
+            <p class="description-modal-description" id="modalDescription">Descripción</p>
+            <div class="description-modal-actions">
+                <button class="btn-close-desc" onclick="cerrarModal()">Cerrar</button>
+                <button class="btn-add-desc" onclick="agregarAlCarrito()" id="btnAddToCart">+ Carrito</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="cart-modal" id="cartModal">
@@ -470,13 +666,13 @@ $generos = $generoDAO->getAll();
         <h3>Carrito</h3>
         <button onclick="toggleCart()" style="background:none; border:none; color:white; cursor:pointer;">✕</button>
     </div>
-    
+
     <div id="cartItems" style="flex:1; padding:1rem; overflow-y:auto;">
         </div>
-    
+
     <div style="padding:1rem; border-top:1px solid #eee;">
-        <strong>Total: <span id="cartTotal">$0.00</span></strong>
-        
+        <strong>Total: <span id="cartTotal">$0,00</span></strong>
+
         <button onclick="finalizarCompra()" style="width:100%; background:var(--gold); border:none; padding:10px; margin-top:10px; cursor:pointer; font-weight:bold; color:var(--green-deep);">
             FINALIZAR COMPRA
         </button>
@@ -500,48 +696,157 @@ $generos = $generoDAO->getAll();
 <script>
     const usuarioLogueado = <?= isset($_SESSION['usuario_id']) ? 'true' : 'false' ?>;
     let cart = [], total = 0;
+    let libroActualModal = null;
 
-function addToCart(name, price) {
-    if (!usuarioLogueado) {
-        alert("Debes iniciar sesión para comprar.");
-        // Corregimos la ruta para que vaya a la carpeta registro
-        window.location.href = '../registro/login.html';
-        return;
+    // ── Estado del carrusel ──
+    let currentSlide = 0;
+    let totalSlides = 0;
+
+    // Formatea números en estilo argentino: 25000 -> "25.000,00"
+    function formatPrecio(num) {
+        return Number(num).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
-    
-    cart.push({ name, price });
-    total += price;
-    document.getElementById('cart-count').textContent = cart.length;
-    renderCart();
-    showToast(`"${name}" agregado al carrito`);
-}
+
+    function generarCarrusel(imagenes) {
+        const container = document.getElementById('carouselContainer');
+        const nav = document.getElementById('carouselNav');
+        container.innerHTML = '';
+        nav.innerHTML = '';
+
+        imagenes.forEach((img, i) => {
+            const slide = document.createElement('div');
+            slide.className = 'carousel-slide' + (i === 0 ? ' active' : '');
+            slide.innerHTML = `<img src="../img/${img}" onerror="this.src='https://via.placeholder.com/280x380?text=Libro'">`;
+            container.appendChild(slide);
+
+            const dot = document.createElement('button');
+            dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+            dot.onclick = () => goToSlide(i);
+            nav.appendChild(dot);
+        });
+
+        // Flechas prev/next solo si hay más de 1 imagen
+        if (imagenes.length > 1) {
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'carousel-btn prev';
+            prevBtn.innerHTML = '‹';
+            prevBtn.onclick = prevSlide;
+            container.parentElement.appendChild(prevBtn);
+
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'carousel-btn next';
+            nextBtn.innerHTML = '›';
+            nextBtn.onclick = nextSlide;
+            container.parentElement.appendChild(nextBtn);
+        }
+
+        currentSlide = 0;
+        totalSlides = imagenes.length;
+    }
+
+    function goToSlide(index) {
+        const slides = document.querySelectorAll('.carousel-slide');
+        const dots = document.querySelectorAll('.carousel-dot');
+        if (!slides.length) return;
+
+        slides[currentSlide].classList.remove('active');
+        dots[currentSlide].classList.remove('active');
+
+        currentSlide = index;
+
+        slides[currentSlide].classList.add('active');
+        dots[currentSlide].classList.add('active');
+    }
+
+    function nextSlide() {
+        goToSlide((currentSlide + 1) % totalSlides);
+    }
+
+    function prevSlide() {
+        goToSlide((currentSlide - 1 + totalSlides) % totalSlides);
+    }
+
+    function abrirModal(btn) {
+        // Recolectamos las 3 imágenes posibles (tapa, contratapa, perspectiva) y descartamos las vacías
+        const imagenes = [
+            btn.dataset.imagen1,
+            btn.dataset.imagen2,
+            btn.dataset.imagen3
+        ].filter(img => img && img.length > 0);
+
+        libroActualModal = {
+            id: btn.dataset.id,
+            nombre: JSON.parse(btn.dataset.nombre),
+            autor: btn.dataset.autor,
+            detalle: btn.dataset.detalle,
+            precio: parseFloat(btn.dataset.precio)
+        };
+
+        document.getElementById('modalTitle').textContent = libroActualModal.nombre;
+        document.getElementById('modalAuthor').textContent = 'por ' + libroActualModal.autor;
+        document.getElementById('modalPrice').textContent = '$' + formatPrecio(libroActualModal.precio);
+        document.getElementById('modalDescription').textContent = libroActualModal.detalle;
+
+        generarCarrusel(imagenes.length > 0 ? imagenes : ['']);
+
+        document.getElementById('descriptionOverlay').classList.add('open');
+    }
+
+    function cerrarModal() {
+        document.getElementById('descriptionOverlay').classList.remove('open');
+        libroActualModal = null;
+    }
+
+    function agregarAlCarrito() {
+        if (!usuarioLogueado) {
+            alert("Debes iniciar sesión para comprar.");
+            window.location.href = '../registro/login.html';
+            return;
+        }
+
+        if (libroActualModal) {
+            cart.push({ name: libroActualModal.nombre, price: libroActualModal.precio });
+            total += libroActualModal.precio;
+            document.getElementById('cart-count').textContent = cart.length;
+            renderCart();
+            showToast(`"${libroActualModal.nombre}" agregado al carrito`);
+            cerrarModal();
+        }
+    }
+
+    // Cerrar modal al hacer click fuera
+    document.getElementById('descriptionOverlay').addEventListener('click', function(e) {
+        if (e.target === this) {
+            cerrarModal();
+        }
+    });
 
     function renderCart() {
-    const container = document.getElementById('cartItems');
-    
-    if (cart.length === 0) {
-        container.innerHTML = `<p style="text-align:center; color:#888; margin-top:2rem;">El carrito está vacío</p>`;
-    } else {
-        container.innerHTML = cart.map((item, index) => `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:0.9rem; border-bottom:1px solid #eee; padding-bottom:5px;">
-                <div style="flex:1;">
-                    <span style="display:block; font-weight:bold;">${item.name}</span>
-                    <span style="color:var(--green-mid);">$${item.price.toFixed(2)}</span>
-                </div>
-                <button onclick="removeFromCart(${index})" style="background: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; margin-left: 10px; font-size: 0.8rem;">
-                    ✕
-                </button>
-            </div>
-        `).join('');
-    }
-    
-    document.getElementById('cartTotal').textContent = `$${total.toFixed(2)}`;
+        const container = document.getElementById('cartItems');
 
-    // Si el modal de checkout está abierto, actualizamos sus totales también
-    if(document.getElementById('checkoutModal').classList.contains('open')) {
-        actualizarTotalFinal();
+        if (cart.length === 0) {
+            container.innerHTML = `<p style="text-align:center; color:#888; margin-top:2rem;">El carrito está vacío</p>`;
+        } else {
+            container.innerHTML = cart.map((item, index) => `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:0.9rem; border-bottom:1px solid #eee; padding-bottom:5px;">
+                    <div style="flex:1;">
+                        <span style="display:block; font-weight:bold;">${item.name}</span>
+                        <span style="color:var(--green-mid);">$${formatPrecio(item.price)}</span>
+                    </div>
+                    <button onclick="removeFromCart(${index})" style="background: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; margin-left: 10px; font-size: 0.8rem;">
+                        ✕
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('cartTotal').textContent = `$${formatPrecio(total)}`;
+
+        if (document.getElementById('checkoutModal').classList.contains('open')) {
+            actualizarTotalFinal();
+        }
     }
-}
+
     function toggleCart() { document.getElementById('cartModal').classList.toggle('open'); }
 
     function showToast(msg) {
@@ -549,170 +854,154 @@ function addToCart(name, price) {
         t.textContent = msg; t.style.display = 'block';
         setTimeout(() => t.style.display = 'none', 2000);
     }
+
     function finalizarCompra() {
-    if (cart.length === 0) {
-        alert("El carrito está vacío");
-        return;
-    }
-    
-    // Cerramos el carrito lateral y abrimos el de finalizar
-    toggleCart(); 
-    document.getElementById('checkoutModal').classList.add('open');
-    
-    // Llenamos el resumen
-    const summary = document.getElementById('checkoutSummary');
-    summary.innerHTML = cart.map(item => `
-        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-            <span>${item.name}</span>
-            <span>$${item.price.toFixed(2)}</span>
-        </div>
-    `).join('');
-    
-    actualizarTotalFinal();
-}
-
-function actualizarTotalFinal() {
-    const metodo = document.querySelector('input[name="metodoPago"]:checked').value;
-    let descuento = (metodo === 'transferencia') ? total * 0.10 : 0;
-    let neto = total - descuento;
-
-    document.getElementById('st-total').textContent = `$${total.toFixed(2)}`;
-    document.getElementById('desc-total').textContent = `-$${descuento.toFixed(2)}`;
-    document.getElementById('final-total').textContent = `$${neto.toFixed(2)}`;
-}
-
-function closeCheckout() {
-    document.getElementById('checkoutModal').classList.remove('open');
-}
-
-async function confirmarVentaFinal() {
-    if (!cart || cart.length === 0) {
-        alert("El carrito está vacío.");
-        return;
-    }
-
-    let metodoPago = "Efectivo";
-    const selectMetodo = document.getElementById("metodo-pago") || document.getElementById("metodo_pago");
-    if (selectMetodo) {
-        metodoPago = selectMetodo.value;
-    }
-
-    try {
-        const response = await fetch('guardar_venta.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                total: total,
-                metodo: metodoPago,
-                items: cart
-            })
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            alert("¡Compra guardada con éxito!");
-            
-            // BUSCAMOS EL CONTENEDOR DEL TICKET (Ajustado a los campos en español del backend)
-            const ticketContent = document.getElementById("ticketContent");
-            if (ticketContent && result.usuario) {
-                ticketContent.innerHTML = `
-                    <p><b>Factura N°:</b> ${result.id_factura}</p>
-                    <p><b>Cliente:</b> ${result.usuario.realname}</p>
-                    <p><b>Dirección:</b> ${result.usuario.direccion}</p>
-                    <p><b>Email:</b> ${result.usuario.email}</p>
-                    <hr style="border-top:1px dashed #333; margin: 10px 0;">
-                    <p><b>Método de Pago:</b> ${result.compra.metodo}</p>
-                    <p><b>Fecha:</b> ${result.compra.fecha}</p>
-                    <h3 style="text-align:right; margin-top:15px; color:#1a3d2b;">Total: $${result.compra.total.toFixed(2)}</h3>
-                `;
-                
-                // Cerramos el modal de confirmación y abrimos el del ticket impreso
-                if (document.getElementById("checkoutModal")) document.getElementById("checkoutModal").style.display = "none";
-                if (document.getElementById("ticketModal")) document.getElementById("ticketModal").style.display = "flex";
-            } else {
-                // Si por alguna razón no tenés el contenedor de ticket, te avisa y recarga
-                alert("Venta procesada. Redirigiendo...");
-                location.reload();
-            }
-
-            // Limpiamos el carrito local tras el éxito
-            cart = [];
-            total = 0;
-            if (document.getElementById('cart-count')) document.getElementById('cart-count').textContent = '0';
-            
-        } else {
-            alert("Error en el servidor: " + (result.error || "No se pudo procesar la venta."));
+        if (cart.length === 0) {
+            alert("El carrito está vacío");
+            return;
         }
 
-    } catch (error) {
-        console.error("Error capturado:", error);
-        alert("Error en el script de compra: " + error.message);
+        toggleCart();
+        document.getElementById('checkoutModal').classList.add('open');
+
+        const summary = document.getElementById('checkoutSummary');
+        summary.innerHTML = cart.map(item => `
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <span>${item.name}</span>
+                <span>$${formatPrecio(item.price)}</span>
+            </div>
+        `).join('');
+
+        actualizarTotalFinal();
     }
-}
-function confirmarPedido() {
-    alert("¡Pedido confirmado con éxito!");
-    // Aquí es donde luego limpiarías el carrito y guardarías en la BD
-    cart = [];
-    total = 0;
-    document.getElementById('cart-count').textContent = '0';
-    renderCart();
-    closeInvoice();
-}
-function removeFromCart(index) {
-  
-    total -= cart[index].price;
-    
-    
-    cart.splice(index, 1);
-    
-   
-    document.getElementById('cart-count').textContent = cart.length;
-    
-  
-    renderCart();
-    showToast("Producto eliminado");
-}
-async function verMisCompras() {
-    const modal = document.getElementById('comprasModal');
-    const content = document.getElementById('comprasContent');
-    modal.style.display = 'flex';
-    content.innerHTML = '<p style="text-align:center; color:#666;">Cargando historial...</p>';
 
-    try {
-        const response = await fetch('mis_compras.php');
-        const result = await response.json();
+    function actualizarTotalFinal() {
+        const metodo = document.querySelector('input[name="metodoPago"]:checked').value;
+        let descuento = (metodo === 'transferencia') ? total * 0.10 : 0;
+        let neto = total - descuento;
 
-        if (result.success) {
-            if (result.compras.length === 0) {
-                content.innerHTML = '<p style="text-align:center; padding:20px; color:#666;">Aún no realizaste ninguna compra.</p>';
-                return;
-            }
-            let html = '<div style="display:flex; flex-direction:column; gap:12px;">';
-            result.compras.forEach(compra => {
-                html += `
-                    <div style="border:1px solid #e0e0e0; padding:12px; border-radius:8px; background:#fafafa;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                            <span style="font-weight:bold; color:#1a3d2b;">Pedido #${compra.id}</span>
-                            <span style="color:#666; font-size:0.8rem;">${compra.fecha}</span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
-                            <span>Pago: ${compra.metodo}</span>
-                            <span style="font-weight:bold; color:#c0392b;">$${compra.total.toFixed(2)}</span>
-                        </div>
-                    </div>`;
+        document.getElementById('st-total').textContent = `$${formatPrecio(total)}`;
+        document.getElementById('desc-total').textContent = `-$${formatPrecio(descuento)}`;
+        document.getElementById('final-total').textContent = `$${formatPrecio(neto)}`;
+    }
+
+    function closeCheckout() {
+        document.getElementById('checkoutModal').classList.remove('open');
+    }
+
+    async function confirmarVentaFinal() {
+        if (!cart || cart.length === 0) {
+            alert("El carrito está vacío.");
+            return;
+        }
+
+        let metodoPago = "Efectivo";
+        const selectMetodo = document.getElementById("metodo-pago") || document.getElementById("metodo_pago");
+        if (selectMetodo) {
+            metodoPago = selectMetodo.value;
+        }
+
+        try {
+            const response = await fetch('guardar_venta.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ total: total, metodo: metodoPago, items: cart })
             });
-            html += '</div>';
-            content.innerHTML = html;
-        } else {
-            content.innerHTML = `<p style="color:red; text-align:center;">${result.error}</p>`;
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert("¡Compra guardada con éxito!");
+
+                const ticketContent = document.getElementById("ticketContent");
+                if (ticketContent && result.usuario) {
+                    ticketContent.innerHTML = `
+                        <p><b>Factura N°:</b> ${result.id_factura}</p>
+                        <p><b>Cliente:</b> ${result.usuario.realname}</p>
+                        <p><b>Dirección:</b> ${result.usuario.direccion}</p>
+                        <p><b>Email:</b> ${result.usuario.email}</p>
+                        <hr style="border-top:1px dashed #333; margin: 10px 0;">
+                        <p><b>Método de Pago:</b> ${result.compra.metodo}</p>
+                        <p><b>Fecha:</b> ${result.compra.fecha}</p>
+                        <h3 style="text-align:right; margin-top:15px; color:#1a3d2b;">Total: $${formatPrecio(result.compra.total)}</h3>
+                    `;
+
+                    if (document.getElementById("checkoutModal")) document.getElementById("checkoutModal").style.display = "none";
+                    if (document.getElementById("ticketModal")) document.getElementById("ticketModal").style.display = "flex";
+                } else {
+                    alert("Venta procesada. Redirigiendo...");
+                    location.reload();
+                }
+
+                cart = [];
+                total = 0;
+                if (document.getElementById('cart-count')) document.getElementById('cart-count').textContent = '0';
+
+            } else {
+                alert("Error en el servidor: " + (result.error || "No se pudo procesar la venta."));
+            }
+
+        } catch (error) {
+            console.error("Error capturado:", error);
+            alert("Error en el script de compra: " + error.message);
         }
-    } catch (error) {
-        content.innerHTML = '<p style="color:red; text-align:center;">Error al conectar con el servidor.</p>';
     }
-}
+
+    function confirmarPedido() {
+        alert("¡Pedido confirmado con éxito!");
+        cart = [];
+        total = 0;
+        document.getElementById('cart-count').textContent = '0';
+        renderCart();
+        closeInvoice();
+    }
+
+    function removeFromCart(index) {
+        total -= cart[index].price;
+        cart.splice(index, 1);
+        document.getElementById('cart-count').textContent = cart.length;
+        renderCart();
+        showToast("Producto eliminado");
+    }
+
+    async function verMisCompras() {
+        const modal = document.getElementById('comprasModal');
+        const content = document.getElementById('comprasContent');
+        modal.style.display = 'flex';
+        content.innerHTML = '<p style="text-align:center; color:#666;">Cargando historial...</p>';
+
+        try {
+            const response = await fetch('mis_compras.php');
+            const result = await response.json();
+
+            if (result.success) {
+                if (result.compras.length === 0) {
+                    content.innerHTML = '<p style="text-align:center; padding:20px; color:#666;">Aún no realizaste ninguna compra.</p>';
+                    return;
+                }
+                let html = '<div style="display:flex; flex-direction:column; gap:12px;">';
+                result.compras.forEach(compra => {
+                    html += `
+                        <div style="border:1px solid #e0e0e0; padding:12px; border-radius:8px; background:#fafafa;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                <span style="font-weight:bold; color:#1a3d2b;">Pedido #${compra.id}</span>
+                                <span style="color:#666; font-size:0.8rem;">${compra.fecha}</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                                <span>Pago: ${compra.metodo}</span>
+                                <span style="font-weight:bold; color:#c0392b;">$${formatPrecio(compra.total)}</span>
+                            </div>
+                        </div>`;
+                });
+                html += '</div>';
+                content.innerHTML = html;
+            } else {
+                content.innerHTML = `<p style="color:red; text-align:center;">${result.error}</p>`;
+            }
+        } catch (error) {
+            content.innerHTML = '<p style="color:red; text-align:center;">Error al conectar con el servidor.</p>';
+        }
+    }
 </script>
 <div class="cart-modal" id="checkoutModal">
     <div style="background:var(--green-deep); color:white; padding:1.5rem; display:flex; justify-content:space-between; align-items:center;">
@@ -727,11 +1016,11 @@ async function verMisCompras() {
         <h3 style="color:var(--green-mid); border-bottom:1px solid var(--gold); padding-bottom:10px; margin-top:20px;">2. Método de Pago</h3>
         <div style="margin-top:15px;" class="metodos-pagos">
             <label style="display:block; margin-bottom:10px; cursor:pointer;">
-                <input type="radio" name="metodoPago" value="transferencia" checked onchange="actualizarTotalFinal()"> 
+                <input type="radio" name="metodoPago" value="transferencia" checked onchange="actualizarTotalFinal()">
                 🏦 Transferencia (10% OFF)
             </label>
             <label style="display:block; cursor:pointer;">
-                <input type="radio" name="metodoPago" value="tarjeta" onchange="actualizarTotalFinal()"> 
+                <input type="radio" name="metodoPago" value="tarjeta" onchange="actualizarTotalFinal()">
                 💳 Tarjeta Débito/Crédito
             </label>
         </div>
@@ -757,7 +1046,7 @@ async function verMisCompras() {
 </div>
 <div id="ticketModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:5000; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:15px; max-width:450px; width:90%; font-family: 'Courier New', Courier, monospace; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-        
+
         <div style="text-align:center; border-bottom:2px dashed #333; padding-bottom:15px;">
             <h2 style="margin:0; color:#1a3d2b;">BOOKSTORE</h2>
             <p style="margin:5px 0; font-size:0.9rem;">Comprobante de Pago</p>

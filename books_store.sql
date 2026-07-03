@@ -1,3 +1,17 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Servidor: 127.0.0.1
+-- Tiempo de generación: 03-07-2026 a las 05:36:51
+-- Versión del servidor: 10.4.32-MariaDB
+-- Versión de PHP: 8.2.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -39,19 +53,21 @@ INSERT INTO `detalle_ventas` (`id_detalle`, `id_venta`, `id_producto`, `cantidad
 
 CREATE TABLE `genero` (
   `id_genero` int(11) NOT NULL,
-  `nombre_genero` varchar(50) NOT NULL
+  `nombre_genero` varchar(50) NOT NULL,
+  `destacado` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `genero`
 --
 
-INSERT INTO `genero` (`id_genero`, `nombre_genero`) VALUES
-(1, 'Fantasía'),
-(2, 'Terror'),
-(3, 'Romance'),
-(4, 'Comedia'),
-(5, 'Poesía');
+INSERT INTO `genero` (`id_genero`, `nombre_genero`, `destacado`) VALUES
+(1, 'Fantasía', 0),
+(2, 'Terror', 0),
+(3, 'Romance', 1),
+(4, 'Comedia', 1),
+(5, 'Poesía', 0),
+(6, 'Aventura', 0);
 
 -- --------------------------------------------------------
 
@@ -68,22 +84,24 @@ CREATE TABLE `producto` (
   `imagen` varchar(255) DEFAULT NULL,
   `id_genero` int(11) DEFAULT NULL,
   `autor` varchar(100) DEFAULT NULL,
-  `fecha_publicacion` date DEFAULT NULL
+  `fecha_publicacion` date DEFAULT NULL,
+  `imagen2` varchar(255) DEFAULT NULL,
+  `imagen3` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `producto`
 --
 
-INSERT INTO `producto` (`id`, `nombre`, `detalle`, `stock`, `precio`, `imagen`, `id_genero`, `autor`, `fecha_publicacion`) VALUES
-(1, 'Harry Potter y la Piedra Filosofal', 'Un niño huérfano descubre que es un mago y asiste a una escuela de magia.', 50, 25000.00, 'hp1.jpg', 1, 'J.K. Rowling', '1997-06-26'),
-(2, 'El Resplandor', 'Un escritor se vuelve loco en un hotel aislado durante el invierno.', 20, 18500.50, 'resplandor.jpg', 2, 'Stephen King', '1977-01-28'),
-(3, 'Orgullo y Prejuicio', 'La historia de Elizabeth Bennet y su complicada relación con el Sr. Darcy.', 15, 12000.00, 'orgullo.jpg', 3, 'Jane Austen', '1813-01-28'),
-(4, 'Dune', 'En un futuro lejano, familias nobles luchan por el control de un planeta desértico.', 30, 32000.00, 'dune.jpg', 4, 'Frank Herbert', '1965-08-01'),
-(5, 'El Hobbit', 'Bilbo Bolsón se embarca en una aventura para recuperar un tesoro custodiado por un dragón.', 45, 21000.00, 'hobbit.jpg', 1, 'J.R.R. Tolkien', '1937-09-21'),
-(6, 'It (Eso)', 'Un grupo de niños es aterrorizado por una entidad que cambia de forma.', 10, 28000.00, 'it.jpg', 2, 'Stephen King', '1986-09-15'),
-(7, 'Yo, Robot', 'Una colección de relatos sobre las tres leyes de la robótica.', 12, 15500.00, 'robot.jpg', 4, 'Isaac Asimov', '1950-12-02'),
-(8, 'Bajo la misma estrella', 'Dos adolescentes con cáncer se enamoran tras conocerse en un grupo de apoyo.', 25, 9500.00, 'estrella.jpg', 3, 'John Green', '2012-01-10');
+INSERT INTO `producto` (`id`, `nombre`, `detalle`, `stock`, `precio`, `imagen`, `id_genero`, `autor`, `fecha_publicacion`, `imagen2`, `imagen3`) VALUES
+(1, 'Harry Potter y la Piedra Filosofal', 'Un niño huérfano descubre que es un mago y asiste a una escuela de magia.', 50, 25000.00, 'hp1.jpg', 1, 'J.K. Rowling', '1997-06-26', NULL, NULL),
+(2, 'El Resplandor', 'Un escritor se vuelve loco en un hotel aislado durante el invierno.', 20, 18500.50, 'resplandor.jpg', 2, 'Stephen King', '1977-01-28', NULL, NULL),
+(3, 'Orgullo y Prejuicio', 'La historia de Elizabeth Bennet y su complicada relación con el Sr. Darcy.', 15, 12000.00, 'orgullo.jpg', 3, 'Jane Austen', '1813-01-28', NULL, NULL),
+(4, 'Dune', 'En un futuro lejano, familias nobles luchan por el control de un planeta desértico.', 30, 32000.00, 'dune.jpg', 4, 'Frank Herbert', '1965-08-01', NULL, NULL),
+(5, 'El Hobbit', 'Bilbo Bolsón se embarca en una aventura para recuperar un tesoro custodiado por un dragón.', 45, 21000.00, 'hobbit.jpg', 1, 'J.R.R. Tolkien', '1937-09-21', NULL, NULL),
+(6, 'It (Eso)', 'Un grupo de niños es aterrorizado por una entidad que cambia de forma.', 10, 28000.00, 'it.jpg', 2, 'Stephen King', '1986-09-15', NULL, NULL),
+(7, 'Yo, Robot', 'Una colección de relatos sobre las tres leyes de la robótica.', 12, 15500.00, 'robot.jpg', 4, 'Isaac Asimov', '1950-12-02', NULL, NULL),
+(8, 'Bajo la misma estrella', 'Dos adolescentes con cáncer se enamoran tras conocerse en un grupo de apoyo.', 25, 9500.00, 'estrella.jpg', 3, 'John Green', '2012-01-10', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -157,7 +175,10 @@ INSERT INTO `usuarios` (`id`, `realname`, `rol_id`, `pass`, `email`, `username`,
 (5, 'Rocio Admin', 1, '$2y$10$CrWhxPzbVlC2PQ/WuK01RucLkGceJkN5BIHpAck0BvMD1cWf6.MSu', 'rocioe@gmail.com', 'rocio', '000', 'Administración'),
 (6, 'Ivan Roglich', 3, '$2y$10$O/PwSo7PdeCbRKWo5f/g5OlAT2UHwTPpSCjuwtSwy6BZ7hyhWzluC', 'ivan@gmail.com', 'ivan1', '0111568694218', 'jose maria moreno'),
 (7, 'Valentina Gonzales', 3, '$2y$10$76Cc1a1F9L5gnUHaubZJKe0vbv.TiBfHhk0ojuinZLWTS3z1DxTwm', 'valen@gmail.com', 'valen2', '11543176548', 'formosa 242'),
-(8, 'Tito Calderon', 3, '$2y$10$oqvWHWr18sZPMYP51HNUh.uF65aGn8Wi2fJnx7MUbeYvqOhHzYzjq', 'momo@gmail.com', 'momo', '1176382182', 'san isidro 232');
+(8, 'Tito Calderon', 3, '$2y$10$oqvWHWr18sZPMYP51HNUh.uF65aGn8Wi2fJnx7MUbeYvqOhHzYzjq', 'momo@gmail.com', 'momo', '1176382182', 'san isidro 232'),
+(10, 'more lopez', 3, '$2y$10$.N8w/ZvVXV22/OTS9e3vm.QvXRZJleiRkT7KwxjpyLZvqLymPjU4S', 'more@gmail.com', 'more2', '11 34528732', 'mitre 22'),
+(11, 'nicole rodriguez', 3, '$2y$10$nbj7pdNA9s9KOY5qIEWm6uOa4sseNEu7Ny.5USxqOhXE99YXBdqt6', 'chau@gmail.com', 'nicole1', '1193829212', 'el indio 777'),
+(12, 'Andrea Insaurralde', 3, '$2y$10$zn7iKQYINodxPl/apA3NgeS98.dNA3G5dbBcjPVVRCsLoyRWIt9G2', 'andrea@gmail.com', 'andrea123', '1167676969', 'calle 123');
 
 -- --------------------------------------------------------
 
@@ -179,7 +200,11 @@ CREATE TABLE `ventas` (
 
 INSERT INTO `ventas` (`id_venta`, `id_usuario`, `total`, `fecha`, `metodo_pago`) VALUES
 (1, 1, 46000.00, '2026-03-18 16:52:08', 'Transferencia'),
-(2, 2, 34000.50, '2026-03-19 13:15:00', 'Efectivo');
+(2, 2, 34000.50, '2026-03-19 13:15:00', 'Efectivo'),
+(3, 10, 25000.00, '2026-06-27 21:23:01', 'Efectivo'),
+(4, 10, 25000.00, '2026-06-27 21:24:36', 'Efectivo'),
+(5, 10, 25000.00, '2026-06-27 21:26:29', 'Efectivo'),
+(6, 11, 25000.00, '2026-07-01 20:58:24', 'Efectivo');
 
 --
 -- Índices para tablas volcadas
@@ -250,7 +275,7 @@ ALTER TABLE `detalle_ventas`
 -- AUTO_INCREMENT de la tabla `genero`
 --
 ALTER TABLE `genero`
-  MODIFY `id_genero` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_genero` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `producto`
@@ -274,13 +299,13 @@ ALTER TABLE `rol`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Restricciones para tablas volcadas

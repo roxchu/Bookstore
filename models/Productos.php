@@ -10,7 +10,9 @@ class Producto {
     private float  $precio;
     private int    $stock;
     private int    $idGenero;
-    private ?string $imagen;   // puede no tener imagen cargada
+    private ?string $imagen;
+    private ?string $imagen2; 
+    private ?string $imagen3;
 
     //constructor
     public function __construct(
@@ -21,7 +23,9 @@ class Producto {
         float   $precio,
         int     $stock,
         int     $idGenero,
-        ?string $imagen = null
+        ?string $imagen = null,
+        ?string $imagen2 = null,
+        ?string $imagen3 = null
     ) {
         $this->id       = $id;
         $this->nombre   = $nombre;
@@ -31,6 +35,8 @@ class Producto {
         $this->stock    = $stock;
         $this->idGenero = $idGenero;
         $this->imagen   = $imagen;
+        $this->imagen2  = $imagen2;
+        $this->imagen3  = $imagen3;
     }
 
     //getters
@@ -66,6 +72,14 @@ class Producto {
         return $this->imagen;
     }
 
+    public function getImagen2(): ?string { 
+        return $this->imagen2; 
+    }
+
+    public function getImagen3(): ?string { 
+        return $this->imagen3; 
+    }
+
     //setters
     public function setId(int $id): void {
         $this->id = $id;
@@ -98,4 +112,13 @@ class Producto {
     public function setImagen(?string $imagen): void {
         $this->imagen = $imagen;
     }
+
+    public function setImagen2(?string $imagen2): void { 
+        $this->imagen2 = $imagen2; 
+    }
+    
+    public function setImagen3(?string $imagen3): void { 
+        $this->imagen3 = $imagen3; 
+    }
 }
+
