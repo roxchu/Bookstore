@@ -1,4 +1,5 @@
-:root {
+
+        :root {
             --green-deep:   #1a3d2b;
             --green-mid:    #2d6a4f;
             --green-accent: #52b788;
@@ -295,3 +296,88 @@
             text-decoration: none;
         }
         .login-link a:hover { text-decoration: underline; }
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-wrapper input {
+    padding-right: 2.7rem !important;
+    width: 100% !important;
+}
+
+.toggle-password-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--green-mid);
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: color 0.2s ease, transform 0.2s ease;
+    user-select: none;
+    z-index: 10;
+}
+
+.toggle-password-icon:hover {
+    color: var(--green-accent);
+}
+
+#password-rules-box {
+    margin-top: 0.85rem;
+    padding: 0.9rem 1.1rem;
+    background: var(--cream);
+    border: 1px solid var(--green-pale);
+    border-radius: 4px;
+    font-size: 0.82rem;
+    color: var(--text-dark);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+}
+
+#password-rules-box p {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--green-deep);
+    font-size: 0.85rem;
+}
+
+#password-rules-box ul {
+    list-style: none !important; 
+    padding-left: 0 !important;
+    margin: 0 !important;
+}
+
+#password-rules-box li {
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    transition: all 0.3s ease;
+}
+
+#password-rules-box li:last-child {
+    margin-bottom: 0;
+}
+
+#password-rules-box li.invalid {
+    color: #8a9a8f; 
+}
+#password-rules-box li.invalid i {
+    color: #cbd5ce;
+    font-size: 0.9rem;
+}
+
+#password-rules-box li.valid {
+    color: var(--green-deep);
+    font-weight: 700;
+}
+#password-rules-box li.valid i {
+    color: var(--green-accent);
+    font-size: 0.9rem;
+    filter: drop-shadow(0 1px 2px rgba(82,183,136,0.2));
+}

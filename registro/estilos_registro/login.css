@@ -326,3 +326,35 @@ input:focus {
     .left-panel { display: none; }
     .right-panel { width: 100%; padding: 3rem 2rem; }
 }
+/* Contenedor relativo: Aseguramos que tenga el ancho completo */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%; /* ← Agregar esta línea es clave */
+}
+
+/* Evitamos que el texto de la contraseña tape al icono */
+.password-wrapper input {
+    padding-right: 2.5rem !important; 
+    width: 100%;
+}
+
+/* Posicionamiento absoluto del ojo dentro del campo */
+.toggle-password-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%); /* ← Centra verticalmente el ojo sin importar el tamaño del input */
+    color: var(--green-mid);
+    cursor: pointer;
+    font-size: 1.15rem;
+    transition: color 0.2s ease;
+    user-select: none;
+    z-index: 10; /* ← Asegura que quede siempre por encima del input */
+}
+
+/* Efecto hover */
+.toggle-password-icon:hover {
+    color: var(--green-accent);
+}
