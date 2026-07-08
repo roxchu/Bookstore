@@ -135,6 +135,22 @@
                 </div>
             </div>
 
+            <!-- VERIFICACION POR EMAIL -->
+            <div class="step-panel" id="step-code">
+                <p class="step-title">Revisa tu email</p>
+
+                <div class="form-group">
+                    <label for="codigo">Codigo de verificacion</label>
+                    <input type="text" id="codigo" inputmode="numeric" maxlength="6" placeholder="Ej: 123456">
+                    <div class="field-error" id="err-codigo"></div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="volverAContacto()">Cambiar email</button>
+                    <button class="btn btn-primary" id="btnVerificar" onclick="verificarCodigo()">Terminar registro</button>
+                </div>
+            </div>
+
             <!-- ÉXITO -->
             <div class="success-panel" id="successPanel">
                 <div class="success-icon">✅</div>
@@ -341,6 +357,14 @@ document.getElementById('pass').addEventListener('input', function() {
                 document.getElementById(`step-3`).classList.remove('active');
                 document.getElementById('successPanel').style.display = 'block';
                 setTimeout(() => window.location.href = '../index.php', 2000);
+            } else if (data.type === 'code_sent') {
+                document.getElementById('step-3').classList.remove('active');
+                document.getElementById('step-code').classList.add('active');
+                const errBox = document.getElementById('globalError');
+                errBox.textContent = data.ack;
+                errBox.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Crear cuenta';
             } else {
                 const errBox = document.getElementById('globalError');
                 errBox.textContent = data.ack;
@@ -354,6 +378,54 @@ document.getElementById('pass').addEventListener('input', function() {
             errBox.style.display = 'block';
             btn.disabled = false;
             btn.textContent = 'Crear cuenta';
+        }
+    }
+
+    function volverAContacto() {
+        document.getElementById('step-code').classList.remove('active');
+        document.getElementById('step-3').classList.add('active');
+        document.getElementById('globalError').style.display = 'none';
+        document.getElementById('btnRegistrar').disabled = false;
+        document.getElementById('btnRegistrar').textContent = 'Crear cuenta';
+    }
+
+    async function verificarCodigo() {
+        limpiarErrores('err-codigo');
+        const errBox = document.getElementById('globalError');
+        errBox.style.display = 'none';
+
+        const codigo = document.getElementById('codigo').value.trim();
+        if (!codigo) {
+            mostrarError('err-codigo', 'Ingrese el codigo que llego a su email.');
+            return;
+        }
+
+        const btn = document.getElementById('btnVerificar');
+        btn.disabled = true;
+        btn.textContent = 'Verificando...';
+
+        try {
+            const res = await fetch('verificar_registro.php', {
+                method: 'POST',
+                body: new URLSearchParams({ codigo })
+            });
+            const data = await res.json();
+
+            if (data.type === 'success') {
+                document.getElementById('step-code').classList.remove('active');
+                document.getElementById('successPanel').style.display = 'block';
+                setTimeout(() => window.location.href = '../index.php', 2000);
+            } else {
+                errBox.textContent = data.ack || 'No se pudo verificar el codigo.';
+                errBox.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Terminar registro';
+            }
+        } catch (e) {
+            errBox.textContent = 'Error de conexion. Intenta de nuevo.';
+            errBox.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Terminar registro';
         }
     }
 </script>

@@ -7,7 +7,7 @@ class Rol {
     private string $nombreRol;
     private string $rolDescripcion;
 
-    // 2. CONSTRUCTOR
+    //CONSTRUCTOR
     public function __construct(
         int    $idRol,
         string $nombreRol,
