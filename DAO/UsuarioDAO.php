@@ -56,14 +56,14 @@ class UsuarioDAO {
     public function loginUsuario(string $username): ?Usuario {
         $stmt = $this->conexion->prepare(
             "SELECT id, realname, username, pass, email, telefono, direccion, rol_id
-             FROM usuarios WHERE username = ?"
+             FROM usuarios WHERE username = ? OR email = ?"
         );
         
         if (!$stmt) {
             return null;
         }
 
-        $stmt->bind_param("s", $username);
+        $stmt->bind_param("ss", $username, $username);
         $stmt->execute();
         $resultado = $stmt->get_result();
 
