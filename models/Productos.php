@@ -121,4 +121,3 @@ class Producto {
         $this->imagen3 = $imagen3; 
     }
 }
-
