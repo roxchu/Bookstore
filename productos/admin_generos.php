@@ -66,3 +66,32 @@ if ($action === 'update_destacados') {
     }
     exit;
 }
+// CREAR NUEVO GÉNERO
+if ($action === 'create_genero') {
+    try {
+        $nombre = $_POST['nombre'] ?? '';
+
+        if (empty($nombre)) {
+            echo json_encode(['status' => 'error', 'message' => 'El nombre es requerido']);
+            exit;
+        }
+
+        // Verificar que no exista
+        $stmt = $pdo->prepare("SELECT id_genero FROM genero WHERE nombre_genero = ?");
+        $stmt->execute([$nombre]);
+        
+        if ($stmt->fetch()) {
+            echo json_encode(['status' => 'error', 'message' => 'El género ya existe']);
+            exit;
+        }
+
+        // Insertar
+        $stmt = $pdo->prepare("INSERT INTO genero (nombre_genero, destacado) VALUES (?, 0)");
+        $stmt->execute([$nombre]);
+
+        echo json_encode(['status' => 'success', 'message' => 'Género creado']);
+    } catch (Exception $e) {
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    }
+    exit;
+}

@@ -22,6 +22,7 @@ session_start();
             z-index: 1000;
             border-bottom: 3px solid var(--gold);
             gap: 20px;
+            flex-wrap: wrap;
         }
 
         .logo {
@@ -37,6 +38,7 @@ session_start();
             display: flex;
             justify-content: center;
             max-width: 550px;
+            min-width: 200px;
         }
 
         .search-box {
@@ -157,10 +159,10 @@ session_start();
             color: white;
         }
 
-        /* ── ESTILO MEJORADO PARA EL BOTÓN INGRESAR ── */
+        /* ── ESTILO MEJORADO PARA LOS BOTONES ── */
         .nav-btn {
             background: white;
-            color: #1a3d2b; /* Alineado con el color de tu diseño */
+            color: #1a3d2b;
             border: 1.5px solid transparent;
             padding: 8px 22px;
             border-radius: 20px;
@@ -179,6 +181,262 @@ session_start();
         }
         .nav-btn:active {
             transform: translateY(0);
+        }
+
+        /* HERO SECTION MÁS PEQUEÑO */
+        .hero-section {
+            background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 100%);
+            padding: 2rem 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '📚';
+            position: absolute;
+            font-size: 12rem;
+            opacity: 0.04;
+            top: -2rem;
+            right: -1.5rem;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--cream);
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: 0.95rem;
+            color: var(--green-light);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .hero-line {
+            width: 50px;
+            height: 3px;
+            background: var(--gold);
+            margin: 1rem auto;
+        }
+
+        /* CARRUSEL DE LIBROS */
+        .carousel-section {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .carousel-wrapper {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            height: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            padding: 2rem;
+            gap: 2rem;
+            position: relative;
+        }
+
+        .carousel-book {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            max-width: 250px;
+        }
+
+        .carousel-book img {
+            max-height: 300px;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .carousel-book-info {
+            text-align: center;
+            width: 100%;
+        }
+
+        .carousel-book-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--green-deep);
+            margin-bottom: 0.3rem;
+        }
+
+        .carousel-book-author {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .carousel-book-price {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--green-mid);
+            margin-bottom: 0.8rem;
+        }
+
+        .carousel-book-btn {
+            background: var(--green-deep);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .carousel-book-btn:hover {
+            background: var(--green-mid);
+        }
+
+        .carousel-nav {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+    .carousel-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.5);
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+        padding: 0;
+        flex-shrink: 0;
+    }
+
+    .carousel-dot:hover {
+        background: rgba(255,255,255,0.8);
+    }
+
+    .carousel-dot.active {
+        background: var(--gold);
+        transform: scale(1.2);
+    }
+
+    .carousel-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0,0,0,0.5);
+        color: white;
+        border: none;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1.4rem;
+        z-index: 10;
+        transition: background 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        line-height: 1;
+    }
+
+    .carousel-btn:hover {
+        background: rgba(0,0,0,0.8);
+    }
+
+    .carousel-btn.prev {
+        left: 15px;
+    }
+
+    .carousel-btn.next {
+        right: 15px;
+    }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            header {
+                padding: 0.8rem 1.5rem;
+            }
+            .search-container {
+                order: 3;
+                flex-basis: 100%;
+                margin-top: 0.5rem;
+                max-width: 100%;
+            }
+            .hero-title {
+                font-size: 2rem;
+            }
+            .carousel-slide {
+                flex-wrap: wrap;
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 0.8rem 1rem;
+                gap: 10px;
+            }
+            .logo-main {
+                font-size: 1.3rem;
+            }
+            .search-container {
+                order: 3;
+                flex-basis: 100%;
+                margin-top: 0.5rem;
+            }
+            .hero-section {
+                padding: 1.5rem 1rem;
+            }
+            .hero-title {
+                font-size: 1.8rem;
+                margin-bottom: 0.3rem;
+            }
+            .hero-line {
+                margin: 0.8rem auto;
+            }
+            .carousel-slide {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            .carousel-book {
+                max-width: 100%;
+                width: 100%;
+            }
+            .carousel-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+            }
+            .cart-modal {
+                width: 100%;
+            }
+            .book-showcase {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
         }
     </style>
 </head>
@@ -215,6 +473,7 @@ session_start();
                 </div>
             <?php else: ?>
                 <a href="registro/login.html" class="nav-btn">Ingresar</a>
+                <a href="registro/registro.html" class="nav-btn" style="background: var(--gold); color: var(--green-deep);">Crear Cuenta</a>
             <?php endif; ?>
 
             <div class="cart-container" onclick="toggleCart()">
@@ -230,43 +489,48 @@ session_start();
         <p class="hero-subtitle">Descubrí tu próxima historia</p>
     </div>
 
+    <!-- CARRUSEL DE LIBROS DESTACADOS -->
+    <div class="carousel-section">
+        <div class="carousel-container">
+            <div class="carousel-wrapper" id="carouselWrapper">
+                <!-- Los slides se generan dinámicamente -->
+            </div>
+            <button class="carousel-btn prev" onclick="prevSlide()">❮</button>
+            <button class="carousel-btn next" onclick="nextSlide()">❯</button>
+            <div class="carousel-nav" id="carouselNav"></div>
+        </div>
+    </div>
+
     <main>
         <h2 class="section-label">Novedades por Género</h2>
         <div class="section-divider"></div>
 
-  <div class="book-showcase">
+        <div class="book-showcase">
             <?php
             try {
-                // Conexión 
                 $pdo = new PDO('mysql:host=localhost;dbname=books_store;charset=utf8', 'root', '');
                 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 
-                
                 $imagenes_generos = [
-                    1 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWx-rnxpTtxMdg2AtIMLEQBBAJtdLpepvEhg&s", // Fantasía
-                    2 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHezajmRuG5FyayYnDrEEtEeuexc6GuESgOxm_uMQxUF04oFBsyb8Tz_6B&s=10",         // Terror
-                    3 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSRLoOoI0K8Xq-BKcwFq-mK4GCcDY4w8W54A&s", // Romance
-                    4 => "https://thumbs.dreamstime.com/b/m%C3%A1scaras-del-teatro-de-la-comedia-y-de-la-tragedia-21958013.jpg", // Comedia
-                    5 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs8OSuskP5BtLo0KGXt0JuCU1tibDCpdxvXg&s", // Poesía
-                    6 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6Jt02Bx6Dt3Q-GqrRCdD5Qj3IpfVwWm4p2A3iRU8Kwev3x9EG-bE57D4&s=10" // Aventura
+                    1 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWx-rnxpTtxMdg2AtIMLEQBBAJtdLpepvEhg&s",
+                    2 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHezajmRuG5FyayYnDrEEtEeuexc6GuESgOxm_uMQxUF04oFBsyb8Tz_6B&s=10",
+                    3 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSRLoOoI0K8Xq-BKcwFq-mK4GCcDY4w8W54A&s",
+                    4 => "https://thumbs.dreamstime.com/b/m%C3%A1scaras-del-teatro-de-la-comedia-y-de-la-tragedia-21958013.jpg",
+                    5 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs8OSuskP5BtLo0KGXt0JuCU1tibDCpdxvXg&s",
+                    6 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6Jt02Bx6Dt3Q-GqrRCdD5Qj3IpfVwWm4p2A3iRU8Kwev3x9EG-bE57D4&s=10"
                 ];
 
-                
-                $stmt = $pdo->query("SELECT id_genero, nombre_genero, destacado FROM genero ORDER BY destacado DESC, id_genero ASC");
+                $stmt = $pdo->query("SELECT id_genero, nombre_genero FROM genero ORDER BY id_genero ASC");
                 
                 while ($genero = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     $id_genero = $genero['id_genero'];
                     $nombre_genero = htmlspecialchars($genero['nombre_genero']);
-                    $es_destacado = ($genero['destacado'] == 1);
                     $img_g = $imagenes_generos[$id_genero] ?? "https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600";
                     ?>
                     
                     <a href="productos/libros.php?genero=<?= $id_genero ?>" class="book-card">
                         <div class="book-image-wrap">
                             <img src="<?= $img_g ?>" alt="<?= $nombre_genero ?>" class="book-image">
-                            <?php if ($es_destacado): ?>
-                                <span class="book-badge">Destacado</span>
-                            <?php endif; ?>
                         </div>
                         <div class="book-info">
                             <h3 class="book-name"><?= $nombre_genero ?></h3>
@@ -315,11 +579,11 @@ session_start();
             <span>Total</span>
             <span id="cartTotal">$0.00</span>
         </div>
-        <button class="checkout-btn">Finalizar Compra</button>
+        <button class="checkout-btn" onclick="irACheckout()">Finalizar Compra</button>
     </div>
 
     <div id="comprasModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:5000; justify-content:center; align-items:center;">
-        <div style="background:white; padding:25px; border-radius:12px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto; box-shadow: 0 5px 20px rgba(0,0,0,0.3); font-family: 'Lato', sans-serif;">
+        <div style="background:white; padding:25px; border-radius:12px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto; box-shadow: 0 5px 20px rgba(0,0,0,0.3);">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:15px;">
                 <h3 style="margin:0; color:#1a3d2b; font-family:'Playfair Display', serif;">Mi Historial de Compras</h3>
                 <button onclick="document.getElementById('comprasModal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
@@ -338,6 +602,171 @@ session_start();
         let cart = [];
         let total = 0;
         const usuarioLogueado = <?= isset($_SESSION['username']) ? 'true' : 'false' ?>;
+        let currentSlide = 0;
+        let slides = [];
+
+        // Cargar carrito desde localStorage (MODO INVITADO)
+        function cargarCarrito() {
+            const carritoGuardado = localStorage.getItem('bookstore_cart');
+            if (carritoGuardado) {
+                try {
+                    cart = JSON.parse(carritoGuardado);
+                    total = cart.reduce((sum, item) => sum + item.price, 0);
+                    document.getElementById('cart-count').textContent = cart.length;
+                    renderCart();
+                } catch (e) {
+                    console.log('Error cargando carrito:', e);
+                }
+            }
+        }
+
+        // Guardar carrito en localStorage
+        function guardarCarrito() {
+            localStorage.setItem('bookstore_cart', JSON.stringify(cart));
+        }
+
+        // Cargar libros destacados para el carrusel
+        async function cargarCarrusel() {
+            try {
+                const response = await fetch('productos/libros.php?api=carrusel');
+                const data = await response.json();
+                
+                if (data && data.libros && data.libros.length > 0) {
+                    slides = data.libros;
+                    generarCarrusel();
+                }
+            } catch (e) {
+                console.log('No se pudo cargar el carrusel:', e);
+            }
+        }
+
+        function generarCarrusel() {
+            const wrapper = document.getElementById('carouselWrapper');
+            const nav = document.getElementById('carouselNav');
+            wrapper.innerHTML = '';
+            nav.innerHTML = '';
+
+            // Agrupar libros en slides de 3
+            for (let i = 0; i < slides.length; i += 3) {
+                const slide = document.createElement('div');
+                slide.className = 'carousel-slide' + (i === 0 ? ' active' : '');
+                
+                let html = '';
+                for (let j = i; j < i + 3 && j < slides.length; j++) {
+                    const libro = slides[j];
+                    html += `
+                        <div class="carousel-book">
+                            <img src="img/${libro.imagen}" onerror="this.src='https://via.placeholder.com/200x300?text=Libro'" alt="${libro.nombre}">
+                            <div class="carousel-book-info">
+                                <div class="carousel-book-title">${libro.nombre}</div>
+                                <div class="carousel-book-author">por ${libro.autor}</div>
+                                <div class="carousel-book-price">$${parseFloat(libro.precio).toFixed(2)}</div>
+                                <button class="carousel-book-btn" onclick="addToCart('${libro.nombre.replace(/'/g, "\\'")}', ${libro.precio})">+ Carrito</button>
+                            </div>
+                        </div>
+                    `;
+                }
+                slide.innerHTML = html;
+                wrapper.appendChild(slide);
+
+                // Crear punto de navegación
+                const dotContainer = Math.floor(i / 3);
+                const dot = document.createElement('button');
+                dot.className = 'carousel-dot' + (dotContainer === 0 ? ' active' : '');
+                dot.onclick = () => goToSlide(dotContainer);
+                nav.appendChild(dot);
+            }
+
+            currentSlide = 0;
+        }
+
+        function goToSlide(index) {
+            const slides = document.querySelectorAll('.carousel-slide');
+            if (index >= 0 && index < slides.length) {
+                currentSlide = index;
+                const wrapper = document.getElementById('carouselWrapper');
+                wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+                document.querySelectorAll('.carousel-dot').forEach((dot, i) => {
+                    dot.classList.toggle('active', i === currentSlide);
+                });
+            }
+        }
+
+        function nextSlide() {
+            const slides = document.querySelectorAll('.carousel-slide');
+            goToSlide((currentSlide + 1) % slides.length);
+        }
+
+        function prevSlide() {
+            const slides = document.querySelectorAll('.carousel-slide');
+            goToSlide((currentSlide - 1 + slides.length) % slides.length);
+        }
+
+        // AGREGAR AL CARRITO - FUNCIONA SIN LOGIN (MODO INVITADO)
+        function addToCart(name, price) {
+            cart.push({ name, price });
+            total += price;
+            document.getElementById('cart-count').textContent = cart.length;
+            guardarCarrito();
+            renderCart();
+            showToast(`"${name}" agregado al carrito`);
+        }
+
+        // ELIMINAR DEL CARRITO
+        function removeFromCart(index) {
+            total -= cart[index].price;
+            cart.splice(index, 1);
+            document.getElementById('cart-count').textContent = cart.length;
+            guardarCarrito();
+            renderCart();
+            showToast("Producto eliminado");
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cartItems');
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="color:#aaa;text-align:center;margin-top:2rem">El carrito está vacío</p>';
+            } else {
+                container.innerHTML = cart.map((item, idx) => `
+                    <div class="cart-item">
+                        <div>
+                            <span class="cart-item-name">${item.name}</span><br>
+                            <span style="color:#666; font-size:0.85rem;">$${item.price.toFixed(2)}</span>
+                        </div>
+                        <button onclick="removeFromCart(${idx})" style="background:#ff4d4d; color:white; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;">✕</button>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('cartTotal').textContent = `$${total.toFixed(2)}`;
+        }
+
+        function toggleCart() {
+            document.getElementById('cartModal').classList.toggle('open');
+        }
+
+        function irACheckout() {
+            if (cart.length === 0) {
+                showToast('El carrito está vacío');
+                return;
+            }
+
+            if (!usuarioLogueado) {
+                showToast('Debes ingresar para continuar');
+                setTimeout(() => window.location.href = 'registro/login.html', 1000);
+                return;
+            }
+
+            guardarCarrito();
+            window.location.href = 'productos/libros.php?checkout=1';
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
 
         async function verMisCompras() {
             const modal = document.getElementById('comprasModal');
@@ -378,44 +807,11 @@ session_start();
             }
         }
 
-        function addToCart(name, price) {
-            if(!usuarioLogueado) {
-                alert("Debes iniciar sesión para comprar.");
-                window.location.href = 'registro/login.html';
-                return;
-            }
-            cart.push({ name, price });
-            total += price;
-            document.getElementById('cart-count').textContent = cart.length;
-            renderCart();
-            showToast(`"${name}" agregado al carrito`);
-        }
-
-        function renderCart() {
-            const container = document.getElementById('cartItems');
-            if (cart.length === 0) {
-                container.innerHTML = '<p style="color:#aaa;text-align:center;margin-top:2rem">El carrito está vacío</p>';
-            } else {
-                container.innerHTML = cart.map(item => `
-                    <div class="cart-item">
-                        <span class="cart-item-name">${item.name}</span>
-                        <span class="cart-item-price">$${item.price.toFixed(2)}</span>
-                    </div>
-                `).join('');
-            }
-            document.getElementById('cartTotal').textContent = `$${total.toFixed(2)}`;
-        }
-
-        function toggleCart() {
-            document.getElementById('cartModal').classList.toggle('open');
-        }
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2500);
-        }
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarCarrito();
+            cargarCarrusel();
+        });
     </script>
 </body>
 </html>

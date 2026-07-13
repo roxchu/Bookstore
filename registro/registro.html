@@ -65,12 +65,12 @@
 
 <!-- PASO 2: Username y contraseñas -->
 <div class="step-panel" id="step-2">
-    <p class="step-title">Elegí tu usuario y contraseña</p>
+    <p class="step-title">Elegí tu contraseña</p>
 
     <div class="form-group">
-        <label for="user">Nombre de usuario</label>
-        <input type="text" id="user" placeholder="Ej: mariag99">
-        <div class="field-error" id="err-user"></div>
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="tu@email.com">
+        <div class="field-error" id="err-email"></div>
     </div>
 
 <div class="form-group">
@@ -108,25 +108,14 @@
     </div>
 </div>
             <!-- PASO 3: Email, teléfono, dirección -->
+                        <!-- PASO 3: Teléfono -->
             <div class="step-panel" id="step-3">
                 <p class="step-title">¿Cómo te contactamos?</p>
-
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="tu@email.com">
-                    <div class="field-error" id="err-email"></div>
-                </div>
 
                 <div class="form-group">
                     <label for="telefono">Teléfono</label>
                     <input type="tel" id="telefono" placeholder="Ej: 1122334455">
                     <div class="field-error" id="err-telefono"></div>
-                </div>
-
-                <div class="form-group">
-                    <label for="direccion">Dirección de envío</label>
-                    <input type="text" id="direccion" placeholder="Calle, número, ciudad">
-                    <div class="field-error" id="err-direccion"></div>
                 </div>
 
                 <div class="btn-row">
@@ -240,20 +229,28 @@
         }
 
         if (paso === 2) {
-            limpiarErrores('err-user', 'err-pass', 'err-rpass');
+            limpiarErrores('err-email', 'err-pass', 'err-rpass');
             let ok = true;
+            const email = document.getElementById('email').value.trim();
             const pass  = document.getElementById('pass').value;
             const rpass = document.getElementById('rpass').value;
 
-            if (!document.getElementById('user').value.trim()) {
-                mostrarError('err-user', 'El nombre de usuario es requerido.');
+            if (!email) {
+                mostrarError('err-email', 'El email es requerido.');
+                ok = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                mostrarError('err-email', 'El email no es válido.');
                 ok = false;
             }
+            
             if (pass.length < 8) {
                 mostrarError('err-pass', 'La contraseña debe tener al menos 8 caracteres.');
                 ok = false;
             } else if (!/[A-Z]/.test(pass)) {
                 mostrarError('err-pass', 'Debe tener al menos una mayúscula.');
+                ok = false;
+            } else if (!/[a-z]/.test(pass)) {
+                mostrarError('err-pass', 'Debe tener al menos una minúscula.');
                 ok = false;
             } else if (!/[0-9]/.test(pass)) {
                 mostrarError('err-pass', 'Debe tener al menos un número.');
@@ -262,8 +259,21 @@
                 mostrarError('err-pass', 'Debe tener al menos un símbolo especial.');
                 ok = false;
             }
+            
             if (pass !== rpass) {
                 mostrarError('err-rpass', 'Las contraseñas no coinciden.');
+                ok = false;
+            }
+            return ok;
+        }
+
+        if (paso === 3) {
+            limpiarErrores('err-telefono');
+            let ok = true;
+            const telefono = document.getElementById('telefono').value.trim();
+            
+            if (!telefono) {
+                mostrarError('err-telefono', 'El teléfono es requerido.');
                 ok = false;
             }
             return ok;
@@ -319,18 +329,14 @@ document.getElementById('pass').addEventListener('input', function() {
         }
     }
 });
-    async function registrar() {
-        limpiarErrores('err-email', 'err-telefono', 'err-direccion');
+        async function registrar() {
+        limpiarErrores('err-telefono');
         document.getElementById('globalError').style.display = 'none';
 
-        const email     = document.getElementById('email').value.trim();
         const telefono  = document.getElementById('telefono').value.trim();
-        const direccion = document.getElementById('direccion').value.trim();
 
         let ok = true;
-        if (!email) { mostrarError('err-email', 'El email es requerido.'); ok = false; }
         if (!telefono) { mostrarError('err-telefono', 'El teléfono es requerido.'); ok = false; }
-        if (!direccion) { mostrarError('err-direccion', 'La dirección es requerida.'); ok = false; }
         if (!ok) return;
 
         const btn = document.getElementById('btnRegistrar');
@@ -340,12 +346,10 @@ document.getElementById('pass').addEventListener('input', function() {
         const body = new URLSearchParams({
             nombre:    document.getElementById('nombre').value.trim(),
             apellido:  document.getElementById('apellido').value.trim(),
-            user:      document.getElementById('user').value.trim(),
+            email:     document.getElementById('email').value.trim(),
             pass:      document.getElementById('pass').value,
             rpass:     document.getElementById('rpass').value,
-            email,
-            telefono,
-            direccion
+            telefono:  telefono
         });
 
         try {

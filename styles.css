@@ -113,7 +113,7 @@
         /* HERO */
         .hero-section {
             background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 100%);
-            padding: 5rem 3rem;
+            padding: 2rem 3rem;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -130,10 +130,10 @@
 
         .hero-title {
             font-family: 'Playfair Display', serif;
-            font-size: 4rem;
+            font-size: 2.5rem;
             font-weight: 900;
             color: var(--cream);
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             animation: fadeDown 0.8s ease-out;
         }
 
@@ -440,9 +440,200 @@
 
         .toast.show { transform: translateX(-50%) translateY(0); }
 
-        @media (max-width: 768px) {
-            header { padding: 1rem 1.5rem; }
-            .logo-main { font-size: 1.5rem; }
-            .hero-title { font-size: 2.5rem; }
-            .cart-modal { width: 100%; }
+                /* CARRUSEL DE LIBROS */
+        .carousel-section {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
         }
+
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .carousel-wrapper {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #eee;
+        }
+
+        .carousel-slide img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        .carousel-nav {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .carousel-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.6);
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+        }
+
+        .carousel-dot.active {
+            background: white;
+            transform: scale(1.2);
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.4);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            z-index: 10;
+            transition: background 0.3s;
+        }
+
+        .carousel-btn:hover {
+            background: rgba(0,0,0,0.7);
+        }
+
+        .carousel-btn.prev {
+            left: 20px;
+        }
+
+        .carousel-btn.next {
+            right: 20px;
+        }
+
+        /* Estilos adicionales para responsividad */
+@media (max-width: 1024px) {
+    header {
+        padding: 0.8rem 1.5rem;
+    }
+    .search-container {
+        order: 3;
+        flex-basis: 100%;
+        margin-top: 0.5rem;
+        max-width: 100%;
+    }
+    .hero-title {
+        font-size: 2rem;
+    }
+    .carousel-slide {
+        flex-wrap: wrap;
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    header {
+        padding: 0.8rem 1rem;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .logo-main {
+        font-size: 1.3rem;
+    }
+    .logo-sub {
+        font-size: 0.5rem;
+    }
+    .search-container {
+        order: 3;
+        flex-basis: 100%;
+        margin-top: 0.5rem;
+    }
+    .hero-section {
+        padding: 1.5rem 1rem;
+    }
+    .hero-title {
+        font-size: 1.8rem;
+        margin-bottom: 0.3rem;
+    }
+    .hero-line {
+        margin: 0.8rem auto;
+    }
+    .carousel-section {
+        padding: 0 1rem;
+    }
+    .carousel-slide {
+        flex-direction: column;
+        padding: 1rem;
+    }
+    .carousel-book {
+        max-width: 100%;
+        width: 100%;
+    }
+    .carousel-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+    .cart-modal {
+        width: 100%;
+    }
+    .book-showcase {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    main {
+        padding: 1.5rem 1rem;
+    }
+    .nav-btn {
+        padding: 6px 16px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    header {
+        padding: 0.6rem 0.8rem;
+    }
+    .logo-main {
+        font-size: 1.1rem;
+    }
+    .search-container {
+        max-width: 100%;
+    }
+    .search-box input {
+        font-size: 0.85rem;
+    }
+    .hero-title {
+        font-size: 1.5rem;
+    }
+    .nav-btn {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+    }
+    .cart-container img {
+        width: 24px;
+        height: 24px;
+    }
+    .carousel-book-price {
+        font-size: 1.1rem;
+    }
+    .carousel-book-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+    }
+}

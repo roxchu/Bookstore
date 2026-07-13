@@ -86,6 +86,26 @@
             </div>
         </div>
     </div>
+    <!-- ── CARRUSEL DE PRODUCTOS ── -->
+    <h1 class="page-title" style="margin-top: 50px;">Gestionar Carrusel</h1>
+    <div class="page-divider"></div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem;">
+        <div>
+            <h3 style="color: var(--green-deep); margin-bottom: 1rem;">Libros en el Carrusel</h3>
+            <div id="carruselList" style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; max-height: 400px; overflow-y: auto;">
+                <p style="color: #999; text-align: center;">Cargando...</p>
+            </div>
+        </div>
+
+        <div>
+            <h3 style="color: var(--green-deep); margin-bottom: 1rem;">Seleccionar Libros (Máx 6)</h3>
+            <div id="productosDisponibles" style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; max-height: 400px; overflow-y: auto;">
+                <p style="color: #999; text-align: center;">Cargando...</p>
+            </div>
+            <button class="btn-primary" onclick="guardarCarrusel()" style="width: 100%; margin-top: 1rem;">Guardar Carrusel</button>
+        </div>
+    </div> 
 
     <h1 class="page-title" style="margin-top: 50px;">Géneros Destacados</h1>
     <div class="page-divider"></div>
@@ -108,6 +128,17 @@
             </div>
         </form>
     </div>
+
+    <h1 class="page-title" style="margin-top: 50px;">Crear Nuevo Género</h1>
+<div class="page-divider"></div>
+
+<div style="background: white; padding: 2rem; border-radius: 12px; max-width: 600px;">
+    <div class="form-group">
+        <label for="nuevoGenero" style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: var(--green-deep);">Nombre del Género</label>
+        <input type="text" id="nuevoGenero" placeholder="Ej: Ciencia Ficción" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-family: 'Lato', sans-serif;">
+    </div>
+    <button class="btn-primary" onclick="crearGenero()" style="width: 100%; margin-top: 1rem;">Crear Género</button>
+</div>
 
 </div> <div class="modal-overlay" id="formModal">
     <div class="modal">
@@ -183,6 +214,7 @@
 <script>
     let allProducts = [];
     let deleteId = null;
+    let carruselActual = [];
 
     async function loadProducts() {
         try {
@@ -192,6 +224,7 @@
                 allProducts = data.productos;
                 renderTable(allProducts);
                 updateStats();
+                renderProductosDisponibles();  // ← AGREGAR ESTO
             } else {
                 showError(data.message || 'Error al cargar productos');
             }
@@ -201,7 +234,6 @@
         }
     }
 
-  
     function renderTable(products) {
         const wrap = document.getElementById('tableContent');
         if (products.length === 0) {
@@ -214,14 +246,13 @@
             const stockLabel = p.stock == 0 ? 'Sin stock' : p.stock;
             const nombre = escHtml(p.nombre ?? '—');
             const detalle = escHtml((p.detalle ?? '').substring(0, 40)) + ((p.detalle ?? '').length > 40 ? '...' : '');
-           
-            const imgPath = p.imagen ? '../img/' + encodeURIComponent(p.imagen) : '../img/no-book.jpg';
 
+            const imgPath = p.imagen ? '../img/' + encodeURIComponent(p.imagen) : '../img/no-book.jpg';
             return `
                 <tr>
                     <td>
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <img src="${imgPath}" onerror="this.src='../img/no-book.jpg'" class="book-thumbnail" alt="${nombre}">
+                            <img src="${imgPath}" class="book-thumbnail" alt="${nombre}">
                             <strong>${nombre}</strong>
                         </div>
                     </td>
@@ -398,7 +429,7 @@
     document.getElementById('formModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
     document.getElementById('confirmModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeConfirm(); });
 
-    // Funciones específicas para los Géneros Destacados
+    // ── GÉNEROS DESTACADOS ──
     async function loadGenerosDestacados() {
         try {
             const res = await fetch('../productos/admin_generos.php?action=list');
@@ -453,9 +484,173 @@
         }
     }
 
+    // ── CARRUSEL ──
+    async function loadCarrusel() {
+        try {
+            const res = await fetch('../productos/admin_carrusel.php?action=list');
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                carruselActual = data.carrusel || [];
+                renderCarrusel();
+            }
+        } catch (e) {
+            console.log('Error cargando carrusel:', e);
+            carruselActual = [];
+        }
+    }
+
+    function renderCarrusel() {
+        const list = document.getElementById('carruselList');
+        
+        if (carruselActual.length === 0) {
+            list.innerHTML = '<p style="color: #999; text-align: center;">Ningún libro seleccionado</p>';
+            return;
+        }
+
+        list.innerHTML = carruselActual.map((lib, idx) => {
+            const imgPath = lib.imagen ? '../img/' + lib.imagen : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23ddd%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E';
+            return `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; border-bottom: 1px solid #eee;">
+                    <div style="display: flex; gap: 10px; flex: 1; align-items: center;">
+                        <img src="${imgPath}" style="width: 40px; height: 60px; object-fit: cover; border-radius: 4px; background: #f0f0f0;" alt="${escHtml(lib.nombre)}">
+                        <div style="flex: 1;">
+                            <span style="background: var(--gold); color: var(--green-deep); padding: 2px 8px; border-radius: 50%; font-weight: bold; margin-right: 8px;">${idx + 1}</span>
+                            <strong>${escHtml(lib.nombre)}</strong>
+                            <br>
+                            <small style="color: #666;">por ${escHtml(lib.autor)}</small>
+                        </div>
+                    </div>
+                    <button onclick="removerDelCarrusel(${lib.id_producto})" style="background: #ff4d4d; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; flex-shrink: 0;">✕</button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderProductosDisponibles() {
+        const container = document.getElementById('productosDisponibles');
+        
+        if (allProducts.length === 0) {
+            container.innerHTML = '<p style="color: #999; text-align: center;">No hay productos</p>';
+            return;
+        }
+
+        container.innerHTML = allProducts.map(p => {
+            const isInCarrusel = carruselActual.some(c => c.id_producto == p.id);
+            const style = isInCarrusel ? 'background: #d8f3dc; border: 2px solid #2d6a4f;' : 'border: 1px solid #ddd;';
+            
+            const imgPath = p.imagen ? '../img/' + p.imagen : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23ddd%22 width=%22200%22 height=%22200%22/%3E%3C/svg%3E';
+            
+            return `
+                <div style="padding: 0.8rem; margin-bottom: 0.8rem; border-radius: 6px; cursor: pointer; ${style}" 
+                     onclick="toggleProductoEnCarrusel(${p.id}, '${escHtml(p.nombre)}', '${escHtml(p.autor)}', ${p.precio}, '${escHtml(p.imagen)}')">
+                    <img src="${imgPath}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem; background: #f0f0f0;" alt="${escHtml(p.nombre)}">
+                    <strong>${escHtml(p.nombre)}</strong>
+                    <br>
+                    <small style="color: #666;">por ${escHtml(p.autor)}</small>
+                    <br>
+                    <small style="color: var(--green-mid); font-weight: bold;">$${Number(p.precio).toLocaleString('es-AR')}</small>
+                    ${isInCarrusel ? '<br><small style="color: var(--green-deep); font-weight: bold;">✓ En carrusel</small>' : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    function toggleProductoEnCarrusel(id, nombre, autor, precio, imagen) {
+        const index = carruselActual.findIndex(c => c.id_producto == id);
+        
+        if (index >= 0) {
+            carruselActual.splice(index, 1);
+        } else {
+            if (carruselActual.length < 6) {
+                carruselActual.push({
+                    id_producto: id,
+                    nombre: nombre,
+                    autor: autor,
+                    precio: precio,
+                    imagen: imagen,
+                    posicion: carruselActual.length + 1
+                });
+            } else {
+                showToast('Máximo 6 libros en el carrusel', true);
+                return;
+            }
+        }
+
+        renderCarrusel();
+        renderProductosDisponibles();
+    }
+
+    function removerDelCarrusel(id) {
+        carruselActual = carruselActual.filter(c => c.id_producto != id);
+        renderCarrusel();
+        renderProductosDisponibles();
+    }
+
+    async function guardarCarrusel() {
+        try {
+            const res = await fetch('../productos/admin_carrusel.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'save',
+                    carrusel: carruselActual
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                showToast('Carrusel guardado correctamente');
+                loadCarrusel();
+            } else {
+                showToast(data.message || 'Error al guardar', true);
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Error de conexión', true);
+        }
+    }
+
+    // ── CREAR GÉNERO ──
+    async function crearGenero() {
+        const nombre = document.getElementById('nuevoGenero').value.trim();
+
+        if (!nombre) {
+            showToast('Ingresa el nombre del género', true);
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('action', 'create_genero');
+            formData.append('nombre', nombre);
+
+            const res = await fetch('../productos/admin_generos.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                showToast('Género creado correctamente');
+                document.getElementById('nuevoGenero').value = '';
+                loadGenerosDestacados();
+            } else {
+                showToast(data.message || 'Error al crear', true);
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Error de conexión', true);
+        }
+    }
+
+    // ── INICIALIZAR ──
     document.addEventListener('DOMContentLoaded', () => {
         loadProducts();
         loadGenerosDestacados();
+        loadCarrusel();
     });
 </script>
 </body>

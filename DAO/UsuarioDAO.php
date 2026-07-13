@@ -162,5 +162,56 @@ class UsuarioDAO {
         $stmt->close();
         return $resultado;
     }
+
+        public function buscarPorEmail($email) {
+        $sql = "SELECT * FROM usuario WHERE email = ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        if ($row) {
+            return new Usuario(
+                $row['id_usuario'],
+                $row['nombre'],
+                $row['apellido'],
+                $row['email'],
+                $row['nombre_usuario'],
+                $row['password'],
+                $row['numero_telefono'],
+                $row['direccion'],
+                $row['id_rol']
+            );
+        }
+        return null;
+    }
+
+    public function emailExiste($email) {
+        $sql = "SELECT id_usuario FROM usuario WHERE email = ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $existe = $result->num_rows > 0;
+        $stmt->close();
+        return $existe;
+    }
+
+    public function crearUsuario($nombre, $apellido, $email, $username, $password_hash, $telefono, $direccion, $rol_id) {
+        $sql = "INSERT INTO usuario (nombre, apellido, email, nombre_usuario, password, numero_telefono, direccion, id_rol) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param('sssssssi', $nombre, $apellido, $email, $username, $password_hash, $telefono, $direccion, $rol_id);
+        
+        if ($stmt->execute()) {
+            $usuario_id = $stmt->insert_id;
+            $stmt->close();
+            return $usuario_id;
+        }
+        $stmt->close();
+        return false;
+    }
 }
 ?>

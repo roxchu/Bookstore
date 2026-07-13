@@ -7,18 +7,31 @@ require_once __DIR__ . '/../DAO/ProductoDAO.php';
 require_once __DIR__ . '/../models/genero.php';
 require_once __DIR__ . '/../DAO/generoDAO.php';
 require_once __DIR__ . '/../conexion.php';
-// Conexión centralizada — la misma instancia mysqli que usan todas las vistas
+require_once __DIR__ . '/../DAO/CarruselDAO.php';
+
+// Conexión centralizada
 $conexion = Conexion::conectar();
 
 // 2. Instanciamos los DAO pasándoles la conexión
 $productoDAO = new ProductoDAO($conexion);
 $generoDAO   = new GeneroDAO($conexion);
 
-// 3. Capturamos los filtros de la URL
+// 3. API PARA CARRUSEL - Obtener libros del carrusel
+if (isset($_GET['api']) && $_GET['api'] === 'carrusel') {
+    header('Content-Type: application/json');
+    
+    $carruselDAO = new CarruselDAO($conexion);
+    $libros = $carruselDAO->obtenerLibrosCarrusel();
+    
+    echo json_encode(['libros' => $libros]);
+    exit;
+}
+
+// 4. Capturamos los filtros de la URL
 $busqueda = isset($_GET['q']) ? trim($_GET['q']) : '';
 $id_genero = isset($_GET['genero']) ? intval($_GET['genero']) : 0;
 
-// Obtener nombre del género para el encabezado — vía GeneroDAO::getById()
+// Obtener nombre del género para el encabezado
 $nombre_genero = "Todos los libros";
 if ($id_genero > 0) {
     $genero = $generoDAO->getById($id_genero);
@@ -27,12 +40,13 @@ if ($id_genero > 0) {
     }
 }
 
-// 4. ¡ACA USAMOS EL DAO! Traemos la lista de objetos Producto
+// 5. Traemos la lista de objetos Producto
 $lista_libros = $productoDAO->buscarYFiltrar($busqueda, $id_genero);
 
-// Obtener todos los géneros para el menú lateral — vía GeneroDAO::getAll()
+// Obtener todos los géneros para el menú lateral
 $generos = $generoDAO->getAll();
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -673,7 +687,7 @@ $generos = $generoDAO->getAll();
     <div style="padding:1rem; border-top:1px solid #eee;">
         <strong>Total: <span id="cartTotal">$0,00</span></strong>
 
-        <button onclick="finalizarCompra()" style="width:100%; background:var(--gold); border:none; padding:10px; margin-top:10px; cursor:pointer; font-weight:bold; color:var(--green-deep);">
+        <button onclick="confirmarVentaFinal()" style="width:100%; background:var(--gold); border:none; padding:10px; margin-top:10px; cursor:pointer; font-weight:bold; color:var(--green-deep);">
             FINALIZAR COMPRA
         </button>
     </div>
@@ -701,6 +715,26 @@ $generos = $generoDAO->getAll();
     // ── Estado del carrusel ──
     let currentSlide = 0;
     let totalSlides = 0;
+
+    // CARGAR CARRITO DESDE LOCALSTORAGE AL INICIAR LA PÁGINA
+    function cargarCarritoAlIniciar() {
+        const carritoGuardado = localStorage.getItem('bookstore_cart');
+        if (carritoGuardado) {
+            try {
+                cart = JSON.parse(carritoGuardado);
+                total = cart.reduce((sum, item) => sum + item.price, 0);
+                document.getElementById('cart-count').textContent = cart.length;
+                renderCart();
+            } catch (e) {
+                console.log('Error cargando carrito:', e);
+            }
+        } else {
+            document.getElementById('cart-count').textContent = '0';
+        }
+    }
+
+    // Ejecutar al cargar la página
+    document.addEventListener('DOMContentLoaded', cargarCarritoAlIniciar);
 
     // Formatea números en estilo argentino: 25000 -> "25.000,00"
     function formatPrecio(num) {
@@ -798,17 +832,30 @@ $generos = $generoDAO->getAll();
     }
 
     function agregarAlCarrito() {
-        if (!usuarioLogueado) {
-            alert("Debes iniciar sesión para comprar.");
-            window.location.href = '../registro/login.html';
-            return;
-        }
-
         if (libroActualModal) {
-            cart.push({ name: libroActualModal.nombre, price: libroActualModal.precio });
-            total += libroActualModal.precio;
+            // Obtener carrito de localStorage (modo invitado)
+            let cart = [];
+            const carritoGuardado = localStorage.getItem('bookstore_cart');
+            if (carritoGuardado) {
+                try {
+                    cart = JSON.parse(carritoGuardado);
+                } catch (e) {
+                    cart = [];
+                }
+            }
+            
+            // Agregar el libro
+            cart.push({ 
+                name: libroActualModal.nombre, 
+                price: libroActualModal.precio 
+            });
+            
+            // Guardar en localStorage
+            localStorage.setItem('bookstore_cart', JSON.stringify(cart));
+            
+            // Actualizar contador
             document.getElementById('cart-count').textContent = cart.length;
-            renderCart();
+            
             showToast(`"${libroActualModal.nombre}" agregado al carrito`);
             cerrarModal();
         }
@@ -890,61 +937,255 @@ $generos = $generoDAO->getAll();
     }
 
     async function confirmarVentaFinal() {
+        if (!usuarioLogueado) {
+            alert("Debes iniciar sesión para finalizar la compra.");
+            window.location.href = '../registro/login.html';
+            return;
+        }
+
+        // Abre modal para datos de envío si no están completos
+        if (!document.getElementById('modal-datos-envio')) {
+            mostrarModalDatosEnvio();
+        }
+    }
+
+    function mostrarModalDatosEnvio() {
+        const modal = document.createElement('div');
+        modal.id = 'modal-datos-envio';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 6000;
+        `;
+
+        modal.innerHTML = `
+            <div style="
+                background: white;
+                padding: 2rem;
+                border-radius: 12px;
+                max-width: 500px;
+                width: 90%;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            ">
+                <h2 style="color: var(--green-deep); font-family: 'Playfair Display', serif; margin-bottom: 1.5rem;">
+                    Datos de Envío
+                </h2>
+
+                <form id="form-datos-envio" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div>
+                        <label for="nombre" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Nombre</label>
+                        <input type="text" id="nombre" placeholder="Tu nombre" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
+                    </div>
+
+                    <div>
+                        <label for="apellido" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Apellido</label>
+                        <input type="text" id="apellido" placeholder="Tu apellido" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
+                    </div>
+
+                    <div>
+                        <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Email</label>
+                        <input type="email" id="email" placeholder="tu@email.com" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
+                    </div>
+
+                    <div>
+                        <label for="telefono" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Teléfono</label>
+                        <input type="tel" id="telefono" placeholder="1122334455" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
+                    </div>
+
+                    <div>
+                        <label for="direccion" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Dirección de Envío</label>
+                        <input type="text" id="direccion" placeholder="Calle, número, ciudad" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
+                    </div>
+
+                    <div>
+                        <label for="metodo-pago" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Método de Pago</label>
+                        <select id="metodo-pago" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
+                            <option value="transferencia">🏦 Transferencia (10% Descuento)</option>
+                            <option value="tarjeta">💳 Tarjeta Débito/Crédito</option>
+                            <option value="efectivo">💵 Efectivo</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="button" onclick="cerrarModalDatos()" style="
+                            flex: 1;
+                            padding: 0.8rem;
+                            background: #ddd;
+                            color: #333;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-weight: bold;
+                        ">Cancelar</button>
+                        <button type="submit" style="
+                            flex: 1;
+                            padding: 0.8rem;
+                            background: var(--green-deep);
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-weight: bold;
+                        ">Confirmar Compra</button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        document.getElementById('form-datos-envio').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const nombre = document.getElementById('nombre').value.trim();
+            const apellido = document.getElementById('apellido').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            const direccion = document.getElementById('direccion').value.trim();
+            const metodo = document.getElementById('metodo-pago').value;
+
+            if (!nombre || !apellido || !email || !telefono || !direccion) {
+                alert('Por favor completa todos los campos');
+                return;
+            }
+
+            // Procesar la compra
+            await procesarCompra({
+                nombre,
+                apellido,
+                email,
+                telefono,
+                direccion,
+                metodo
+            });
+
+            cerrarModalDatos();
+        });
+    }
+
+    function cerrarModalDatos() {
+        const modal = document.getElementById('modal-datos-envio');
+        if (modal) {
+            modal.remove();
+        }
+    }
+
+    async function procesarCompra(datos) {
         if (!cart || cart.length === 0) {
             alert("El carrito está vacío.");
             return;
         }
 
-        let metodoPago = "Efectivo";
-        const selectMetodo = document.getElementById("metodo-pago") || document.getElementById("metodo_pago");
-        if (selectMetodo) {
-            metodoPago = selectMetodo.value;
-        }
+        let descuento = (datos.metodo === 'transferencia') ? total * 0.10 : 0;
+        let neto = total - descuento;
 
         try {
             const response = await fetch('guardar_venta.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ total: total, metodo: metodoPago, items: cart })
+                body: JSON.stringify({
+                    total: total,
+                    neto: neto,
+                    descuento: descuento,
+                    metodo: datos.metodo,
+                    items: cart,
+                    cliente: datos
+                })
             });
 
             const result = await response.json();
 
             if (result.success) {
-                alert("¡Compra guardada con éxito!");
-
-                const ticketContent = document.getElementById("ticketContent");
-                if (ticketContent && result.usuario) {
-                    ticketContent.innerHTML = `
-                        <p><b>Factura N°:</b> ${result.id_factura}</p>
-                        <p><b>Cliente:</b> ${result.usuario.realname}</p>
-                        <p><b>Dirección:</b> ${result.usuario.direccion}</p>
-                        <p><b>Email:</b> ${result.usuario.email}</p>
-                        <hr style="border-top:1px dashed #333; margin: 10px 0;">
-                        <p><b>Método de Pago:</b> ${result.compra.metodo}</p>
-                        <p><b>Fecha:</b> ${result.compra.fecha}</p>
-                        <h3 style="text-align:right; margin-top:15px; color:#1a3d2b;">Total: $${formatPrecio(result.compra.total)}</h3>
-                    `;
-
-                    if (document.getElementById("checkoutModal")) document.getElementById("checkoutModal").style.display = "none";
-                    if (document.getElementById("ticketModal")) document.getElementById("ticketModal").style.display = "flex";
-                } else {
-                    alert("Venta procesada. Redirigiendo...");
-                    location.reload();
-                }
-
+                alert("¡Compra procesada con éxito!");
+                
+                // Limpiar carrito
+                localStorage.removeItem('bookstore_cart');
                 cart = [];
                 total = 0;
-                if (document.getElementById('cart-count')) document.getElementById('cart-count').textContent = '0';
-
+                document.getElementById('cart-count').textContent = '0';
+                
+                // Mostrar resumen
+                mostrarResumenCompra(result);
             } else {
-                alert("Error en el servidor: " + (result.error || "No se pudo procesar la venta."));
+                alert("Error: " + (result.error || "No se pudo procesar la venta."));
             }
 
         } catch (error) {
-            console.error("Error capturado:", error);
+            console.error("Error:", error);
             alert("Error en el script de compra: " + error.message);
         }
+    }
+
+    function mostrarResumenCompra(result) {
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 6000;
+        `;
+
+        modal.innerHTML = `
+            <div style="
+                background: white;
+                padding: 2rem;
+                border-radius: 12px;
+                max-width: 500px;
+                width: 90%;
+                font-family: 'Courier New', monospace;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            ">
+                <div style="text-align: center; border-bottom: 2px dashed #333; padding-bottom: 1rem; margin-bottom: 1rem;">
+                    <h2 style="margin: 0; color: var(--green-deep);">BOOKSTORE</h2>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">Comprobante de Pago</p>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <p><b>Factura N°:</b> ${result.id_factura || 'N/A'}</p>
+                    <p><b>Cliente:</b> ${result.cliente.nombre} ${result.cliente.apellido}</p>
+                    <p><b>Email:</b> ${result.cliente.email}</p>
+                    <p><b>Dirección:</b> ${result.cliente.direccion}</p>
+                </div>
+
+                <div style="border-top: 1px dashed #333; border-bottom: 1px dashed #333; padding: 1rem 0; margin-bottom: 1rem;">
+                    <p><b>Método de Pago:</b> ${result.metodo}</p>
+                    <p><b>Fecha:</b> ${new Date().toLocaleDateString('es-AR')}</p>
+                </div>
+
+                <div style="text-align: right;">
+                    <p style="margin: 0.5rem 0;"><b>Subtotal:</b> $${parseFloat(result.total).toFixed(2)}</p>
+                    ${result.descuento > 0 ? `<p style="margin: 0.5rem 0; color: green;"><b>Descuento:</b> -$${parseFloat(result.descuento).toFixed(2)}</p>` : ''}
+                    <h3 style="margin: 1rem 0 0 0; color: var(--green-deep); font-size: 1.3rem;">Total: $${parseFloat(result.neto).toFixed(2)}</h3>
+                </div>
+
+                <button onclick="window.location.href='../index.php'" style="
+                    width: 100%;
+                    background: var(--green-deep);
+                    color: white;
+                    border: none;
+                    padding: 1rem;
+                    margin-top: 1.5rem;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: bold;
+                ">VOLVER AL INICIO</button>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
     }
 
     function confirmarPedido() {

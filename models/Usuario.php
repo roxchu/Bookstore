@@ -19,33 +19,48 @@ class Usuario{
         string $email,
         string $telefono,
         string $direccion,
-        int $idRol,
+        int $idRol
     ){
-        $this -> id = $id;
-        $this -> realname = $realname;
-        $this ->username = $username;
-        $this -> pass = $pass;
-        $this -> email = $email;
-        $this -> telefono = $telefono;
-        $this -> direccion = $direccion;
-        $this -> idRol =  $idRol;
+        $this->id = $id;
+        $this->realname = $realname;
+        $this->username = $username;
+        $this->pass = $pass;
+        $this->email = $email;
+        $this->telefono = $telefono;
+        $this->direccion = $direccion;
+        $this->idRol = $idRol;
     }
 
     //getters 
     public function getID(): int{
-        return $this-> id;
+        return $this->id;
+    }
+
+    // ALIAS para compatibilidad con DAO
+    public function getIdUsuario(): int{
+        return $this->id;
     }
 
     public function getRealname(): string{
-        return $this ->realname;
+        return $this->realname;
     }
 
     public function getUserName(): string{
-        return $this-> username;
+        return $this->username;
+    }
+
+    // ALIAS para compatibilidad
+    public function getNombreUsuario(): string{
+        return $this->username;
     }
 
     public function getPass(): string{
-        return $this -> pass;
+        return $this->pass;
+    }
+
+    // ALIAS para compatibilidad
+    public function getPassword(): string{
+        return $this->pass;
     }
 
     public function getEmail(): string{
@@ -53,7 +68,7 @@ class Usuario{
     }
 
     public function getTelefono(): string{
-        return $this -> telefono;
+        return $this->telefono;
     }
 
     public function getDireccion(): string{
@@ -66,35 +81,35 @@ class Usuario{
 
     //setters
     public function setId(int $id): void{
-     $this -> id = $id;
+        $this->id = $id;
     }
 
     public function setRealname(string $realname): void{
-     $this -> realname = $realname;
+        $this->realname = $realname;
     }
 
     public function setUserName(string $username): void{
-     $this -> username = $username;
+        $this->username = $username;
     }
 
     public function setPass(string $pass): void{
-     $this -> pass = $pass;
+        $this->pass = $pass;
     }
 
     public function setEmail(string $email): void{
-     $this -> email = $email;
+        $this->email = $email;
     }
 
     public function setTelefono(string $telefono): void{
-     $this -> telefono = $telefono;
+        $this->telefono = $telefono;
     }
 
     public function setDireccion(string $direccion): void{
-     $this -> direccion = $direccion;
+        $this->direccion = $direccion;
     }
 
     public function setIdRol(int $idRol): void{
-     $this -> idRol = $idRol;
+        $this->idRol = $idRol;
     }
 }
 ?>
