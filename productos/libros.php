@@ -257,7 +257,7 @@ $generos = $generoDAO->getAll();
 
         .cart-modal { display: none; position: fixed; top: 0; right: 0; width: 350px; height: 100vh; background: white; z-index: 2000; box-shadow: -5px 0 15px rgba(0,0,0,0.1); flex-direction: column; }
         .cart-modal.open { display: flex; }
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--green-mid); color: white; padding: 10px 20px; border-radius: 50px; display: none; z-index: 3000; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--green-mid); color: white; padding: 10px 20px; border-radius: 50px; display: none; z-index: 9999; }
 
         /* ── MODAL DESCRIPCIÓN (OVERLAY) ── */
         .description-overlay {
@@ -451,73 +451,36 @@ $generos = $generoDAO->getAll();
             .description-modal-title { font-size: 1.4rem; }
         }
 
-        .invoice-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-        }
-
-        .invoice-box {
-            background: white;
-            width: 90%;
-            max-width: 450px;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-
-        .invoice-header {
-            background: var(--green-deep);
-            color: var(--gold);
-            padding: 1.5rem;
-            text-align: center;
-            position: relative;
-        }
-
-        .invoice-body {
-            padding: 2rem;
-            color: var(--text-dark);
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        .invoice-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            border-bottom: 1px dashed #ccc;
-        }
-
-        .confirm-btn {
-            width: 100%;
-            background: var(--gold);
-            color: var(--green-deep);
-            border: none;
-            padding: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .confirm-btn:hover { background: #b8973d; }
-
+        /* ── MODAL CHECKOUT MEJORADO (HORIZONTAL) ── */
         #checkoutModal {
             display: none;
             position: fixed;
-            top: 0;
-            right: 0;
-            width: 350px;
-            height: 100vh;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 800px;
             background: white;
-            z-index: 2500;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+            z-index: 3500;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
             flex-direction: column;
+            border-radius: 12px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         #checkoutModal.open { display: flex; }
+
+        .checkout-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 3400;
+        }
+
+        .checkout-overlay.open { display: block; }
 
         .user-dropdown { position: relative; display: inline-block; }
         .dropdown-toggle {
@@ -687,24 +650,93 @@ $generos = $generoDAO->getAll();
     <div style="padding:1rem; border-top:1px solid #eee;">
         <strong>Total: <span id="cartTotal">$0,00</span></strong>
 
-        <button onclick="confirmarVentaFinal()" style="width:100%; background:var(--gold); border:none; padding:10px; margin-top:10px; cursor:pointer; font-weight:bold; color:var(--green-deep);">
+        <button onclick="finalizarCompra()" style="width:100%; background:var(--gold); border:none; padding:10px; margin-top:10px; cursor:pointer; font-weight:bold; color:var(--green-deep);">
             FINALIZAR COMPRA
         </button>
     </div>
 </div>
-<div id="invoiceModal" class="invoice-overlay">
-    <div class="invoice-box">
-        <div class="invoice-header">
-            <h2>PROCESANDO COMPRA</h2>
-            <button onclick="closeInvoice()" class="close-invoice">✕</button>
+
+<!-- OVERLAY PARA MODAL CHECKOUT -->
+<div class="checkout-overlay" id="checkoutOverlay"></div>
+
+<!-- MODAL CHECKOUT (HORIZONTAL COMO REGISTRO) -->
+<div id="checkoutModal">
+    <div style="background:var(--green-deep); color:white; padding:1.5rem; display:flex; justify-content:space-between; align-items:center; border-radius: 12px 12px 0 0;">
+        <h2 style="font-family:'Playfair Display'; margin:0;">Finalizar Compra</h2>
+        <button onclick="closeCheckout()" style="background:none; border:none; color:white; cursor:pointer; font-size:1.5rem;">✕</button>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2rem; padding:2rem; flex:1; overflow-y:auto;">
+        <!-- LADO IZQUIERDO: RESUMEN DEL PEDIDO -->
+        <div>
+            <h3 style="color:var(--green-mid); border-bottom:2px solid var(--gold); padding-bottom:10px; margin-bottom:15px;">Resumen del Pedido</h3>
+            <div id="checkoutSummary" style="font-size:0.9rem;"></div>
         </div>
-        <div id="invoiceContent" class="invoice-body">
-            </div>
-        <div class="invoice-footer">
-            <button onclick="confirmarPedido()" class="confirm-btn">CONFIRMAR Y FINALIZAR</button>
+
+        <!-- LADO DERECHO: FORMULARIO -->
+        <div>
+            <h3 style="color:var(--green-mid); border-bottom:2px solid var(--gold); padding-bottom:10px; margin-bottom:15px;">Datos de Envío</h3>
+            <form id="form-datos-envio" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label for="nombre" style="display: block; margin-bottom: 0.3rem; font-weight: bold; font-size:0.9rem;">Nombre</label>
+                    <input type="text" id="nombre" placeholder="Tu nombre" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size:0.9rem;">
+                </div>
+
+                <div>
+                    <label for="apellido" style="display: block; margin-bottom: 0.3rem; font-weight: bold; font-size:0.9rem;">Apellido</label>
+                    <input type="text" id="apellido" placeholder="Tu apellido" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size:0.9rem;">
+                </div>
+
+                <div>
+                    <label for="email" style="display: block; margin-bottom: 0.3rem; font-weight: bold; font-size:0.9rem;">Email</label>
+                    <input type="email" id="email" placeholder="tu@email.com" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size:0.9rem;">
+                </div>
+
+                <div>
+                    <label for="telefono" style="display: block; margin-bottom: 0.3rem; font-weight: bold; font-size:0.9rem;">Teléfono</label>
+                    <input type="tel" id="telefono" placeholder="1122334455" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size:0.9rem;">
+                </div>
+
+                <div>
+                    <label for="direccion" style="display: block; margin-bottom: 0.3rem; font-weight: bold; font-size:0.9rem;">Dirección de Envío</label>
+                    <input type="text" id="direccion" placeholder="Calle, número, ciudad" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size:0.9rem;">
+                </div>
+
+                <div>
+                    <label for="metodo-pago" style="display: block; margin-bottom: 0.3rem; font-weight: bold; font-size:0.9rem;">Método de Pago</label>
+                    <select id="metodo-pago" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 6px; font-size:0.9rem;">
+                        <option value="transferencia">🏦 Transferencia (10% Descuento)</option>
+                        <option value="tarjeta">💳 Tarjeta Débito/Crédito</option>
+                        <option value="efectivo">💵 Efectivo</option>
+                    </select>
+                </div>
+
+                <div style="border-top: 1px solid #eee; padding-top: 1rem; margin-top: 0.5rem;">
+                    <div style="background:var(--green-pale); padding:1rem; border-radius:6px; margin-bottom:1rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span>Subtotal:</span>
+                            <span id="st-total" style="font-weight:bold;"></span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:red;">
+                            <span>Descuento:</span>
+                            <span id="desc-total" style="font-weight:bold;"></span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.1rem; color:var(--green-deep);">
+                            <span>TOTAL:</span>
+                            <span id="final-total"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem;">
+                    <button type="button" onclick="closeCheckout()" style="flex: 1; padding: 0.8rem; background: #ddd; color: #333; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Cancelar</button>
+                    <button type="submit" style="flex: 1; padding: 0.8rem; background: var(--green-deep); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">PAGAR</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
 <div id="toast" class="toast"></div>
 
 <script>
@@ -833,8 +865,6 @@ $generos = $generoDAO->getAll();
 
     function agregarAlCarrito() {
         if (libroActualModal) {
-            // Usamos la variable global `cart` (declarada arriba), no una copia local,
-            // para que el drawer del carrito y el checkout vean el mismo estado.
             cart.push({
                 name: libroActualModal.nombre,
                 price: libroActualModal.precio
@@ -872,7 +902,7 @@ $generos = $generoDAO->getAll();
                         <span style="display:block; font-weight:bold;">${item.name}</span>
                         <span style="color:var(--green-mid);">$${formatPrecio(item.price)}</span>
                     </div>
-                    <button onclick="removeFromCart(${index})" style="background: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; margin-left: 10px; font-size: 0.8rem;">
+                    <button onclick="removeFromCart(${index})" style="background: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; margin-left: 10px; font-size:0.8rem;">
                         ✕
                     </button>
                 </div>
@@ -880,13 +910,11 @@ $generos = $generoDAO->getAll();
         }
 
         document.getElementById('cartTotal').textContent = `$${formatPrecio(total)}`;
-
-        if (document.getElementById('checkoutModal').classList.contains('open')) {
-            actualizarTotalFinal();
-        }
     }
 
-    function toggleCart() { document.getElementById('cartModal').classList.toggle('open'); }
+    function toggleCart() { 
+        document.getElementById('cartModal').classList.toggle('open'); 
+    }
 
     function showToast(msg) {
         const t = document.getElementById('toast');
@@ -896,26 +924,41 @@ $generos = $generoDAO->getAll();
 
     function finalizarCompra() {
         if (cart.length === 0) {
-            alert("El carrito está vacío");
+            showToast('El carrito está vacío');
             return;
         }
 
+        if (!usuarioLogueado) {
+            showToast('Debes ingresar para continuar');
+            setTimeout(() => window.location.href = '../registro/login.html', 1000);
+            return;
+        }
+
+        // Cerrar carrito y abrir modal checkout
         toggleCart();
+        
+        // Mostrar overlay y modal
+        document.getElementById('checkoutOverlay').classList.add('open');
         document.getElementById('checkoutModal').classList.add('open');
 
+        // Renderizar resumen
         const summary = document.getElementById('checkoutSummary');
         summary.innerHTML = cart.map(item => `
-            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid #eee;">
                 <span>${item.name}</span>
-                <span>$${formatPrecio(item.price)}</span>
+                <span style="font-weight:bold;">$${formatPrecio(item.price)}</span>
             </div>
         `).join('');
 
+        // Actualizar totales
         actualizarTotalFinal();
+
+        // Agregar listener al formulario
+        document.getElementById('form-datos-envio').addEventListener('submit', handleFormSubmit, { once: true });
     }
 
     function actualizarTotalFinal() {
-        const metodo = document.querySelector('input[name="metodoPago"]:checked').value;
+        const metodo = document.getElementById('metodo-pago').value;
         let descuento = (metodo === 'transferencia') ? total * 0.10 : 0;
         let neto = total - descuento;
 
@@ -924,154 +967,43 @@ $generos = $generoDAO->getAll();
         document.getElementById('final-total').textContent = `$${formatPrecio(neto)}`;
     }
 
+    // Listener para cambios en método de pago
+    document.getElementById('metodo-pago').addEventListener('change', actualizarTotalFinal);
+
     function closeCheckout() {
         document.getElementById('checkoutModal').classList.remove('open');
+        document.getElementById('checkoutOverlay').classList.remove('open');
     }
 
-    async function confirmarVentaFinal() {
-        if (!usuarioLogueado) {
-            alert("Debes iniciar sesión para finalizar la compra.");
-            window.location.href = '../registro/login.html';
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        
+        const nombre = document.getElementById('nombre').value.trim();
+        const apellido = document.getElementById('apellido').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+        const direccion = document.getElementById('direccion').value.trim();
+        const metodo = document.getElementById('metodo-pago').value;
+
+        if (!nombre || !apellido || !email || !telefono || !direccion) {
+            showToast('Por favor completa todos los campos');
             return;
         }
 
-        // Abre modal para datos de envío si no están completos
-        if (!document.getElementById('modal-datos-envio')) {
-            mostrarModalDatosEnvio();
-        }
-    }
-
-    function mostrarModalDatosEnvio() {
-        const modal = document.createElement('div');
-        modal.id = 'modal-datos-envio';
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 6000;
-        `;
-
-        modal.innerHTML = `
-            <div style="
-                background: white;
-                padding: 2rem;
-                border-radius: 12px;
-                max-width: 500px;
-                width: 90%;
-                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            ">
-                <h2 style="color: var(--green-deep); font-family: 'Playfair Display', serif; margin-bottom: 1.5rem;">
-                    Datos de Envío
-                </h2>
-
-                <form id="form-datos-envio" style="display: flex; flex-direction: column; gap: 1rem;">
-                    <div>
-                        <label for="nombre" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Nombre</label>
-                        <input type="text" id="nombre" placeholder="Tu nombre" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
-                    </div>
-
-                    <div>
-                        <label for="apellido" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Apellido</label>
-                        <input type="text" id="apellido" placeholder="Tu apellido" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
-                    </div>
-
-                    <div>
-                        <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Email</label>
-                        <input type="email" id="email" placeholder="tu@email.com" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
-                    </div>
-
-                    <div>
-                        <label for="telefono" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Teléfono</label>
-                        <input type="tel" id="telefono" placeholder="1122334455" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
-                    </div>
-
-                    <div>
-                        <label for="direccion" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Dirección de Envío</label>
-                        <input type="text" id="direccion" placeholder="Calle, número, ciudad" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
-                    </div>
-
-                    <div>
-                        <label for="metodo-pago" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Método de Pago</label>
-                        <select id="metodo-pago" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
-                            <option value="transferencia">🏦 Transferencia (10% Descuento)</option>
-                            <option value="tarjeta">💳 Tarjeta Débito/Crédito</option>
-                            <option value="efectivo">💵 Efectivo</option>
-                        </select>
-                    </div>
-
-                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                        <button type="button" onclick="cerrarModalDatos()" style="
-                            flex: 1;
-                            padding: 0.8rem;
-                            background: #ddd;
-                            color: #333;
-                            border: none;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            font-weight: bold;
-                        ">Cancelar</button>
-                        <button type="submit" style="
-                            flex: 1;
-                            padding: 0.8rem;
-                            background: var(--green-deep);
-                            color: white;
-                            border: none;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            font-weight: bold;
-                        ">Confirmar Compra</button>
-                    </div>
-                </form>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-
-        document.getElementById('form-datos-envio').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const nombre = document.getElementById('nombre').value.trim();
-            const apellido = document.getElementById('apellido').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const telefono = document.getElementById('telefono').value.trim();
-            const direccion = document.getElementById('direccion').value.trim();
-            const metodo = document.getElementById('metodo-pago').value;
-
-            if (!nombre || !apellido || !email || !telefono || !direccion) {
-                alert('Por favor completa todos los campos');
-                return;
-            }
-
-            // Procesar la compra
-            await procesarCompra({
-                nombre,
-                apellido,
-                email,
-                telefono,
-                direccion,
-                metodo
-            });
-
-            cerrarModalDatos();
+        // Procesar la compra
+        await procesarCompra({
+            nombre,
+            apellido,
+            email,
+            telefono,
+            direccion,
+            metodo
         });
-    }
-
-    function cerrarModalDatos() {
-        const modal = document.getElementById('modal-datos-envio');
-        if (modal) {
-            modal.remove();
-        }
     }
 
     async function procesarCompra(datos) {
         if (!cart || cart.length === 0) {
-            alert("El carrito está vacío.");
+            showToast('El carrito está vacío.');
             return;
         }
 
@@ -1095,7 +1027,7 @@ $generos = $generoDAO->getAll();
             const result = await response.json();
 
             if (result.success) {
-                alert("¡Compra procesada con éxito!");
+                closeCheckout();
                 
                 // Limpiar carrito
                 localStorage.removeItem('bookstore_cart');
@@ -1107,12 +1039,12 @@ $generos = $generoDAO->getAll();
                 // Mostrar resumen
                 mostrarResumenCompra(result);
             } else {
-                alert("Error: " + (result.error || "No se pudo procesar la venta."));
+                showToast('Error: ' + (result.error || 'No se pudo procesar la venta.'));
             }
 
         } catch (error) {
             console.error("Error:", error);
-            alert("Error en el script de compra: " + error.message);
+            showToast('Error en el script de compra: ' + error.message);
         }
     }
 
@@ -1159,9 +1091,9 @@ $generos = $generoDAO->getAll();
                 </div>
 
                 <div style="text-align: right;">
-                    <p style="margin: 0.5rem 0;"><b>Subtotal:</b> $${parseFloat(result.total).toFixed(2)}</p>
-                    ${result.descuento > 0 ? `<p style="margin: 0.5rem 0; color: green;"><b>Descuento:</b> -$${parseFloat(result.descuento).toFixed(2)}</p>` : ''}
-                    <h3 style="margin: 1rem 0 0 0; color: var(--green-deep); font-size: 1.3rem;">Total: $${parseFloat(result.neto).toFixed(2)}</h3>
+                    <p style="margin: 0.5rem 0;"><b>Subtotal:</b> $${formatPrecio(result.total)}</p>
+                    ${result.descuento > 0 ? `<p style="margin: 0.5rem 0; color: green;"><b>Descuento:</b> -$${formatPrecio(result.descuento)}</p>` : ''}
+                    <h3 style="margin: 1rem 0 0 0; color: var(--green-deep); font-size: 1.3rem;">Total: $${formatPrecio(result.neto)}</h3>
                 </div>
 
                 <button onclick="window.location.href='../index.php'" style="
@@ -1179,15 +1111,6 @@ $generos = $generoDAO->getAll();
         `;
 
         document.body.appendChild(modal);
-    }
-
-    function confirmarPedido() {
-        alert("¡Pedido confirmado con éxito!");
-        cart = [];
-        total = 0;
-        document.getElementById('cart-count').textContent = '0';
-        renderCart();
-        closeInvoice();
     }
 
     function removeFromCart(index) {
@@ -1237,63 +1160,6 @@ $generos = $generoDAO->getAll();
         }
     }
 </script>
-<div class="cart-modal" id="checkoutModal">
-    <div style="background:var(--green-deep); color:white; padding:1.5rem; display:flex; justify-content:space-between; align-items:center;">
-        <h2 style="font-family:'Playfair Display';">Finalizar Compra</h2>
-        <button onclick="closeCheckout()" style="background:none; border:none; color:white; cursor:pointer; font-size:1.5rem;">✕</button>
-    </div>
-
-    <div style="padding:1.5rem; flex:1; overflow-y:auto;">
-        <h3 style="color:var(--green-mid); border-bottom:1px solid var(--gold); padding-bottom:10px;">1. Resumen del Pedido</h3>
-        <div id="checkoutSummary" style="margin:15px 0; font-size:0.9rem;"></div>
-
-        <h3 style="color:var(--green-mid); border-bottom:1px solid var(--gold); padding-bottom:10px; margin-top:20px;">2. Método de Pago</h3>
-        <div style="margin-top:15px;" class="metodos-pagos">
-            <label style="display:block; margin-bottom:10px; cursor:pointer;">
-                <input type="radio" name="metodoPago" value="transferencia" checked onchange="actualizarTotalFinal()">
-                🏦 Transferencia (10% OFF)
-            </label>
-            <label style="display:block; cursor:pointer;">
-                <input type="radio" name="metodoPago" value="tarjeta" onchange="actualizarTotalFinal()">
-                💳 Tarjeta Débito/Crédito
-            </label>
-        </div>
-    </div>
-
-    <div style="padding:1.5rem; border-top:2px solid var(--gold); background:var(--green-pale);">
-        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-            <span>Subtotal:</span>
-            <span id="st-total"></span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:red;">
-            <span>Descuento:</span>
-            <span id="desc-total"></span>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.2rem;">
-            <span>TOTAL:</span>
-            <span id="final-total" style="color:var(--green-deep);"></span>
-        </div>
-        <button onclick="confirmarVentaFinal()" style="width:100%; background:var(--green-deep); color:white; border:none; padding:15px; margin-top:15px; cursor:pointer; font-weight:bold; border-radius:5px;">
-            CONFIRMAR Y PAGAR
-        </button>
-    </div>
-</div>
-<div id="ticketModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:5000; justify-content:center; align-items:center;">
-    <div style="background:white; padding:30px; border-radius:15px; max-width:450px; width:90%; font-family: 'Courier New', Courier, monospace; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-
-        <div style="text-align:center; border-bottom:2px dashed #333; padding-bottom:15px;">
-            <h2 style="margin:0; color:#1a3d2b;">BOOKSTORE</h2>
-            <p style="margin:5px 0; font-size:0.9rem;">Comprobante de Pago</p>
-        </div>
-
-        <div id="ticketContent" style="margin-top:20px; font-size:0.95rem; color:#333;">
-            </div>
-
-        <button onclick="window.location.href='../index.php'" style="width:100%; background:#1a3d2b; color:white; border:none; padding:12px; margin-top:25px; cursor:pointer; border-radius:8px; font-weight:bold; font-family: 'Lato', sans-serif;">
-            LISTO, VOLVER AL INICIO
-        </button>
-    </div>
-</div>
 <div id="comprasModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:5000; justify-content:center; align-items:center;">
     <div style="background:white; padding:25px; border-radius:12px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:15px;">

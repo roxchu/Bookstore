@@ -1,97 +1,102 @@
 <?php
 header('Content-Type: application/json');
-session_start();
+require_once __DIR__ . '/../models/genero.php';
+require_once __DIR__ . '/../DAO/generoDAO.php';
+require_once __DIR__ . '/../conexion.php';
 
-// Validar que el usuario sea administrador
-if (!isset($_SESSION['rol_id']) || $_SESSION['rol_id'] != 1) {
-    echo json_encode(['status' => 'error', 'message' => 'Acceso denegado.']);
-    exit;
-}
+$conexion = Conexion::conectar();
+$generoDAO = new GeneroDAO($conexion);
 
-try {
-    // Conexión 
-    $pdo = new PDO('mysql:host=localhost;dbname=books_store;charset=utf8', 'root', '', [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-    ]);
-} catch (PDOException $e) {
-    echo json_encode(['status' => 'error', 'message' => 'Error de conexión: ' . $e->getMessage()]);
-    exit;
-}
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
 
-$action = $_GET['action'] ?? $_POST['action'] ?? '';
-
-// Listar los géneros
-if ($action === 'list') {
-    try {
-        // BD
-        $stmt = $pdo->query("SELECT id_genero, nombre_genero, destacado FROM genero ORDER BY id_genero ASC");
-        $generos = $stmt->fetchAll();
-        
-        echo json_encode(['status' => 'success', 'generos' => $generos]);
-    } catch (PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Error SQL: ' . $e->getMessage()]);
-    }
-    exit;
-}
-
-// ACCIÓN: Guardar los cambios desde el panel
-if ($action === 'update_destacados') {
-    try {
-        $destacados = json_decode($_POST['destacados'] ?? '[]');
-
-        // Validación de respaldo: Máximo 3
-        if (count($destacados) > 3) {
-            echo json_encode(['status' => 'error', 'message' => 'Límite excedido. Máximo de 3 géneros destacados.']);
-            exit;
-        }
-
-        $pdo->beginTransaction();
-
-        // CORRECCIÓN AQUÍ: Reseteamos tu tabla 'genero'
-        $pdo->query("UPDATE genero SET destacado = 0");
-
-        // Activamos los seleccionados usando 'id_genero'
-        if (count($destacados) > 0) {
-            $placeholders = implode(',', array_fill(0, count($destacados), '?'));
-            $stmt = $pdo->prepare("UPDATE genero SET destacado = 1 WHERE id_genero IN ($placeholders)");
-            $stmt->execute($destacados);
-        }
-
-        $pdo->commit();
-        echo json_encode(['status' => 'success', 'message' => 'Géneros destacados actualizados con éxito.']);
-    } catch (Exception $e) {
-        if ($pdo->inTransaction()) $pdo->rollBack();
-        echo json_encode(['status' => 'error', 'message' => 'Error al guardar: ' . $e->getMessage()]);
-    }
-    exit;
-}
-// CREAR NUEVO GÉNERO
-if ($action === 'create_genero') {
-    try {
+    if ($action === 'create_genero') {
         $nombre = $_POST['nombre'] ?? '';
-
+        
         if (empty($nombre)) {
             echo json_encode(['status' => 'error', 'message' => 'El nombre es requerido']);
             exit;
         }
 
-        // Verificar que no exista
-        $stmt = $pdo->prepare("SELECT id_genero FROM genero WHERE nombre_genero = ?");
-        $stmt->execute([$nombre]);
+        try {
+            $result = $generoDAO->crearGenero($nombre);
+            if ($result) {
+                echo json_encode(['status' => 'success', 'message' => 'Género creado correctamente']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'No se pudo crear el género']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    if ($action === 'update_destacados') {
+        $destacados = json_decode($_POST['destacados'] ?? '[]', true);
         
-        if ($stmt->fetch()) {
-            echo json_encode(['status' => 'error', 'message' => 'El género ya existe']);
+        if (count($destacados) > 3) {
+            echo json_encode(['status' => 'error', 'message' => 'Máximo 3 géneros destacados']);
             exit;
         }
 
-        // Insertar
-        $stmt = $pdo->prepare("INSERT INTO genero (nombre_genero, destacado) VALUES (?, 0)");
-        $stmt->execute([$nombre]);
-
-        echo json_encode(['status' => 'success', 'message' => 'Género creado']);
-    } catch (Exception $e) {
-        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        try {
+            // Primero, marcar todos como no destacados
+            $generoDAO->marcarTodosNoDestacados();
+            
+            // Luego, marcar los seleccionados como destacados
+            foreach ($destacados as $id) {
+                $generoDAO->marcarDestacado($id);
+            }
+            
+            echo json_encode(['status' => 'success', 'message' => 'Géneros destacados actualizados']);
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
     }
-    exit;
+
+    if ($action === 'delete_genero') {
+        $id_genero = $_POST['id'] ?? 0;
+        
+        if (!$id_genero) {
+            echo json_encode(['status' => 'error', 'message' => 'ID de género requerido']);
+            exit;
+        }
+
+        try {
+            $result = $generoDAO->eliminarGenero($id_genero);
+            if ($result) {
+                echo json_encode(['status' => 'success', 'message' => 'Género eliminado correctamente']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'No se pudo eliminar el género']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+} 
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $action = $_GET['action'] ?? '';
+
+    if ($action === 'list') {
+        try {
+            $generos = $generoDAO->getAll();
+            $data = [];
+            foreach ($generos as $genero) {
+                $data[] = [
+                    'id_genero' => $genero->getIdGenero(),
+                    'nombre_genero' => $genero->getNombreGenero(),
+                    'destacado' => 0
+                ];
+            }
+            echo json_encode(['status' => 'success', 'generos' => $data]);
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
 }
+
+echo json_encode(['status' => 'error', 'message' => 'Acción no válida']);
