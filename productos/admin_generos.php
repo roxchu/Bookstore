@@ -31,6 +31,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    if ($action === 'disable_genero') {
+        $id_genero = $_POST['id'] ?? 0;
+        
+        if (!$id_genero) {
+            echo json_encode(['status' => 'error', 'message' => 'ID de género requerido']);
+            exit;
+        }
+
+        try {
+            $result = $generoDAO->deshabilitarGenero($id_genero);
+            if ($result) {
+                echo json_encode(['status' => 'success', 'message' => 'Género deshabilitado correctamente']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'No se pudo deshabilitar el género']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
     if ($action === 'update_destacados') {
         $destacados = json_decode($_POST['destacados'] ?? '[]', true);
         
@@ -54,27 +75,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit;
     }
-
-    if ($action === 'delete_genero') {
-        $id_genero = $_POST['id'] ?? 0;
-        
-        if (!$id_genero) {
-            echo json_encode(['status' => 'error', 'message' => 'ID de género requerido']);
-            exit;
-        }
-
-        try {
-            $result = $generoDAO->eliminarGenero($id_genero);
-            if ($result) {
-                echo json_encode(['status' => 'success', 'message' => 'Género eliminado correctamente']);
-            } else {
-                echo json_encode(['status' => 'error', 'message' => 'No se pudo eliminar el género']);
-            }
-        } catch (Exception $e) {
-            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
-        }
-        exit;
-    }
 } 
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -82,16 +82,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     if ($action === 'list') {
         try {
-            $generos = $generoDAO->getAll();
-            $data = [];
-            foreach ($generos as $genero) {
-                $data[] = [
-                    'id_genero' => $genero->getIdGenero(),
-                    'nombre_genero' => $genero->getNombreGenero(),
-                    'destacado' => 0
-                ];
+            $stmt = $conexion->query("SELECT id_genero, nombre_genero, destacado FROM genero WHERE activo = 1 ORDER BY nombre_genero ASC");
+            $generos = [];
+            while ($row = $stmt->fetch_assoc()) {
+                $generos[] = $row;
             }
-            echo json_encode(['status' => 'success', 'generos' => $data]);
+            echo json_encode(['status' => 'success', 'generos' => $generos]);
         } catch (Exception $e) {
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }

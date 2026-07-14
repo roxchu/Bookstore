@@ -20,7 +20,7 @@ class GeneroDAO {
     // trae todos los géneros — usado en el menú lateral de Libros.php
     public function getAll(): array {
         $resultado = $this->conexion->query(
-            "SELECT * FROM genero ORDER BY nombre_genero ASC"
+            "SELECT * FROM genero WHERE activo = 1 ORDER BY nombre_genero ASC"
         );
 
         $generos = [];
@@ -33,7 +33,7 @@ class GeneroDAO {
     // trae un género por id — usado para mostrar el título en Libros.php
     public function getById(int $idGenero): ?Genero {
         $stmt = $this->conexion->prepare(
-            "SELECT * FROM genero WHERE id_genero = ?"
+            "SELECT * FROM genero WHERE id_genero = ? AND activo = 1"
         );
         $stmt->bind_param("i", $idGenero);
         $stmt->execute();
@@ -47,5 +47,44 @@ class GeneroDAO {
 
         $stmt->close();
         return null;
+    }
+
+    // Crear nuevo género
+    public function crearGenero(string $nombre): bool {
+        $stmt = $this->conexion->prepare(
+            "INSERT INTO genero (nombre_genero, activo) VALUES (?, 1)"
+        );
+        $stmt->bind_param("s", $nombre);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+    }
+
+    // Deshabilitar género (no borra de la BD, solo marca como inactivo)
+    public function deshabilitarGenero(int $idGenero): bool {
+        $stmt = $this->conexion->prepare(
+            "UPDATE genero SET activo = 0 WHERE id_genero = ?"
+        );
+        $stmt->bind_param("i", $idGenero);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+    }
+
+    // Marcar género como destacado
+    public function marcarDestacado(int $idGenero): bool {
+        $stmt = $this->conexion->prepare(
+            "UPDATE genero SET destacado = 1 WHERE id_genero = ?"
+        );
+        $stmt->bind_param("i", $idGenero);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+    }
+
+    // Marcar todos los géneros como no destacados
+    public function marcarTodosNoDestacados(): bool {
+        $result = $this->conexion->query("UPDATE genero SET destacado = 0");
+        return (bool)$result;
     }
 }

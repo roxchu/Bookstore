@@ -111,13 +111,14 @@
     <div class="page-divider"></div>
     <p style="color: #666; margin-bottom: 20px;">Selecciona los géneros que aparecerán con la etiqueta <strong>Destacado</strong> en la página principal (Máximo 3).</p>
     
-    <div class="table-wrap" style="max-width: 600px; margin-bottom: 50px;">
+    <div class="table-wrap" style="max-width: 800px; margin-bottom: 50px;">
         <form id="formGenerosDestacados">
             <table style="width: 100%;">
                 <thead>
                     <tr>
-                        <th style="width: 70%;">Género</th>
-                        <th style="width: 30%; text-align: center;">¿Destacar?</th>
+                        <th style="width: 50%;">Género</th>
+                        <th style="width: 25%; text-align: center;">¿Destacar?</th>
+                        <th style="width: 25%; text-align: center;">Acción</th>
                     </tr>
                 </thead>
                 <tbody id="generosTableBody">
@@ -224,7 +225,7 @@
                 allProducts = data.productos;
                 renderTable(allProducts);
                 updateStats();
-                renderProductosDisponibles();  // ← AGREGAR ESTO
+                renderProductosDisponibles();
             } else {
                 showError(data.message || 'Error al cargar productos');
             }
@@ -444,11 +445,43 @@
                         <td style="text-align: center;">
                             <input type="checkbox" name="genero_destacado" value="${g.id_genero}" ${g.destacado == 1 ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;">
                         </td>
+                        <td style="text-align: center;">
+                            <button type="button" class="btn-delete" onclick="deshabilitarGenero(${g.id_genero}, '${escHtml(g.nombre_genero)}')">Deshabilitar</button>
+                        </td>
                     </tr>
                 `).join('');
             }
         } catch (e) {
             console.error('Error al cargar géneros:', e);
+        }
+    }
+
+    async function deshabilitarGenero(id, nombre) {
+        if (!confirm(`¿Deshabilitar el género "${nombre}"? No se eliminará de la base de datos, solo se ocultará.`)) {
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('action', 'disable_genero');
+            formData.append('id', id);
+
+            const res = await fetch('../productos/admin_generos.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                showToast('Género deshabilitado correctamente');
+                loadGenerosDestacados();
+            } else {
+                showToast(data.message || 'Error al deshabilitar', true);
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Error de conexión', true);
         }
     }
 
@@ -521,7 +554,7 @@
                             <small style="color: #666;">por ${escHtml(lib.autor)}</small>
                         </div>
                     </div>
-                    <button onclick="removerDelCarrusel(${lib.id_producto})" style="background: #ff4d4d; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; flex-shrink: 0;">✕</button>
+                    <button onclick="removerDelCarrusel(${lib.id_producto})" style="background: #ff4d4d; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; white-space: nowrap;" type="button">🗑️ Quitar</button>
                 </div>
             `;
         }).join('');
@@ -543,7 +576,7 @@
             
             return `
                 <div style="padding: 0.8rem; margin-bottom: 0.8rem; border-radius: 6px; cursor: pointer; ${style}" 
-                     onclick="toggleProductoEnCarrusel(${p.id}, '${escHtml(p.nombre)}', '${escHtml(p.autor)}', ${p.precio}, '${escHtml(p.imagen)}')">
+                     onclick="toggleProductoEnCarrusel(${p.id}, '${escHtml(p.nombre)}', '${escHtml(p.autor)}', ${p.precio}, '${escHtml(p.imagen)}')">  
                     <img src="${imgPath}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem; background: #f0f0f0;" alt="${escHtml(p.nombre)}">
                     <strong>${escHtml(p.nombre)}</strong>
                     <br>

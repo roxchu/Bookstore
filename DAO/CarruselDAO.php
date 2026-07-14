@@ -19,7 +19,7 @@ class CarruselDAO {
             $this->crearTabla();
         }
 
-        $sql = "SELECT p.id, p.nombre, p.autor, p.precio, p.imagen, c.posicion
+        $sql = "SELECT p.id, p.nombre, p.autor, p.precio, p.imagen, c.posicion, c.id_producto
                 FROM carrusel c
                 JOIN producto p ON c.id_producto = p.id
                 WHERE c.activo = 1
@@ -40,6 +40,7 @@ class CarruselDAO {
         while ($row = $result->fetch_assoc()) {
             $libros[] = [
                 'id' => $row['id'],
+                'id_producto' => $row['id_producto'],
                 'nombre' => $row['nombre'],
                 'autor' => $row['autor'],
                 'precio' => $row['precio'],
@@ -56,7 +57,7 @@ class CarruselDAO {
     private function crearTabla() {
         $sql = "CREATE TABLE IF NOT EXISTS carrusel (
             id INT PRIMARY KEY AUTO_INCREMENT,
-            id_producto INT NOT NULL,
+            id_producto INT NOT NULL UNIQUE,
             posicion INT NOT NULL,
             activo BOOLEAN DEFAULT 1,
             FOREIGN KEY (id_producto) REFERENCES producto(id)
@@ -65,11 +66,47 @@ class CarruselDAO {
         $this->conexion->query($sql);
     }
 
+    // Guardar carrusel completo
+    public function guardarCarrusel($libros) {
+        try {
+            // Primero, desactivar todos
+            $this->conexion->query("UPDATE carrusel SET activo = 0");
+            
+            // Luego, insertar/actualizar los nuevos
+            foreach ($libros as $pos => $libro) {
+                $posicion = $pos + 1;
+                $id_producto = (int)$libro['id_producto'];
+                
+                $sql = "INSERT INTO carrusel (id_producto, posicion, activo) 
+                        VALUES (?, ?, 1)
+                        ON DUPLICATE KEY UPDATE posicion = ?, activo = 1";
+                
+                $stmt = $this->conexion->prepare($sql);
+                if (!$stmt) {
+                    error_log("Error preparando stmt: " . $this->conexion->error);
+                    return false;
+                }
+                $stmt->bind_param('iii', $id_producto, $posicion, $posicion);
+                if (!$stmt->execute()) {
+                    error_log("Error ejecutando stmt: " . $stmt->error);
+                    $stmt->close();
+                    return false;
+                }
+                $stmt->close();
+            }
+            
+            return true;
+        } catch (Exception $e) {
+            error_log("Error en guardarCarrusel: " . $e->getMessage());
+            return false;
+        }
+    }
+
     // Agregar libro al carrusel
     public function agregarAlCarrusel($id_producto, $posicion) {
         $sql = "INSERT INTO carrusel (id_producto, posicion, activo) 
                 VALUES (?, ?, 1)
-                ON DUPLICATE KEY UPDATE posicion = ?";
+                ON DUPLICATE KEY UPDATE posicion = ?, activo = 1";
         
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('iii', $id_producto, $posicion, $posicion);
@@ -79,7 +116,7 @@ class CarruselDAO {
         return $resultado;
     }
 
-    // Remover del carrusel
+    // Remover del carrusel (solo desactiva, no borra)
     public function removerDelCarrusel($id_producto) {
         $sql = "UPDATE carrusel SET activo = 0 WHERE id_producto = ?";
         $stmt = $this->conexion->prepare($sql);

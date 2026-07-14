@@ -98,11 +98,12 @@ session_start();
             cursor: pointer;
         }
 
-        /* ── CSS PARA EL MENÚ DESPLEGABLE DE USUARIO ── */
+        /* ── CSS PARA EL MENÚ DESPLEGABLE DE USUARIO MEJORADO ── */
         .user-dropdown {
             position: relative;
             display: inline-block;
         }
+        
         .dropdown-toggle {
             background: white;
             color: #1a3d2b;
@@ -112,7 +113,10 @@ session_start();
             border-radius: 20px;
             cursor: pointer;
             font-size: 0.9rem;
+            z-index: 1001;
+            position: relative;
         }
+        
         .dropdown-menu {
             display: none;
             position: absolute;
@@ -120,11 +124,13 @@ session_start();
             background-color: white;
             min-width: 160px;
             box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
-            z-index: 1000;
+            z-index: 1100;
             border-radius: 8px;
             overflow: hidden;
             margin-top: 5px;
+            top: 100%;
         }
+        
         .dropdown-menu a {
             color: #333;
             padding: 12px 16px;
@@ -132,10 +138,26 @@ session_start();
             display: block;
             font-size: 0.85rem;
             text-align: left;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
+        
         .dropdown-menu a:hover {
             background-color: #f5f5f5;
         }
+        
+        .dropdown-menu hr {
+            margin: 5px 0;
+            border: 0;
+            border-top: 1px solid #eee;
+        }
+        
+        /* Mostrar menú al hacer click (con clase "open") */
+        .dropdown-menu.open {
+            display: block !important;
+        }
+        
+        /* También mantener visible en hover */
         .user-dropdown:hover .dropdown-menu {
             display: block;
         }
@@ -478,12 +500,12 @@ session_start();
                 <?php endif; ?>
 
                 <div class="user-dropdown">
-                    <button class="dropdown-toggle">
+                    <button class="dropdown-toggle" type="button">
                         👤 ¡Hola, <?= htmlspecialchars($_SESSION['username']) ?>! ▼
                     </button>
                     <div class="dropdown-menu">
-                        <a href="#" onclick="verMisCompras()">Mis Compras</a>
-                        <hr style="border: 0; border-top: 1px solid #eee; margin: 5px 0;">
+                        <a href="#" onclick="event.preventDefault(); verMisCompras()">Mis Compras</a>
+                        <hr>
                         <a href="registro/logout.php" style="color: #c0392b;">Cerrar Sesión</a>
                     </div>
                 </div>
@@ -620,6 +642,30 @@ session_start();
         const usuarioLogueado = <?= isset($_SESSION['username']) ? 'true' : 'false' ?>;
         let currentSlide = 0;
         let slides = [];
+
+        // Mejorar el dropdown con click
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggles = document.querySelectorAll('.dropdown-toggle');
+            toggles.forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const menu = this.nextElementSibling;
+                    if (menu) {
+                        menu.classList.toggle('open');
+                    }
+                });
+            });
+            
+            // Cerrar menú al hacer click afuera
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.user-dropdown')) {
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        menu.classList.remove('open');
+                    });
+                }
+            });
+        });
 
         // Cargar carrito desde localStorage (MODO INVITADO)
         function cargarCarrito() {

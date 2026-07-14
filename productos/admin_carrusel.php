@@ -13,6 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'save') {
         $carrusel = $data['carrusel'] ?? [];
         
+        if (empty($carrusel)) {
+            echo json_encode(['status' => 'error', 'message' => 'Carrusel vacío']);
+            exit;
+        }
+        
         try {
             $result = $carruselDAO->guardarCarrusel($carrusel);
             if ($result) {
