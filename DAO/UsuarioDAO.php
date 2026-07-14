@@ -163,8 +163,10 @@ class UsuarioDAO {
         return $resultado;
     }
 
+        // Busca por email en la tabla real 'usuarios' y usa el mismo orden
+        // de constructor que hidratar(), para no romper el objeto Usuario.
         public function buscarPorEmail($email) {
-        $sql = "SELECT * FROM usuario WHERE email = ?";
+        $sql = "SELECT id, realname, username, pass, email, telefono, direccion, rol_id FROM usuarios WHERE email = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('s', $email);
         $stmt->execute();
@@ -173,23 +175,13 @@ class UsuarioDAO {
         $stmt->close();
 
         if ($row) {
-            return new Usuario(
-                $row['id_usuario'],
-                $row['nombre'],
-                $row['apellido'],
-                $row['email'],
-                $row['nombre_usuario'],
-                $row['password'],
-                $row['numero_telefono'],
-                $row['direccion'],
-                $row['id_rol']
-            );
+            return $this->hidratar($row);
         }
         return null;
     }
 
     public function emailExiste($email) {
-        $sql = "SELECT id_usuario FROM usuario WHERE email = ?";
+        $sql = "SELECT id FROM usuarios WHERE email = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('s', $email);
         $stmt->execute();
@@ -199,19 +191,15 @@ class UsuarioDAO {
         return $existe;
     }
 
-    public function crearUsuario($nombre, $apellido, $email, $username, $password_hash, $telefono, $direccion, $rol_id) {
-        $sql = "INSERT INTO usuario (nombre, apellido, email, nombre_usuario, password, numero_telefono, direccion, id_rol) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    public function usernameExiste(string $username): bool {
+        $sql = "SELECT id FROM usuarios WHERE username = ?";
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bind_param('sssssssi', $nombre, $apellido, $email, $username, $password_hash, $telefono, $direccion, $rol_id);
-        
-        if ($stmt->execute()) {
-            $usuario_id = $stmt->insert_id;
-            $stmt->close();
-            return $usuario_id;
-        }
+        $stmt->bind_param('s', $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $existe = $result->num_rows > 0;
         $stmt->close();
-        return false;
+        return $existe;
     }
 }
 ?>

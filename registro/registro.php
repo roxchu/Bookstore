@@ -51,23 +51,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'apellido' => $apellido,
         'email' => $email,
         'telefono' => $telefono,
-        'password' => password_hash($password, PASSWORD_BCRYPT),
+        'password' => $password, // se hashea recién en UsuarioDAO::registrarUsuario
         'codigo' => $codigo,
         'codigo_timestamp' => time()
     ];
 
     // Enviar email con código
-    $mailer = new Mailer();
-    $asunto = "Código de verificación - Bookstore";
-    $cuerpo = "Tu código de verificación es: <strong>$codigo</strong><br><br>Este código expira en 10 minutos.";
-    
-    if ($mailer->enviar($email, $asunto, $cuerpo)) {
+    $mailError = null;
+    if (enviarCodigoRegistro($email, $nombre, $codigo, $mailError)) {
         $response = [
             'type' => 'code_sent',
             'ack' => 'Se envió un código de verificación a tu email.'
         ];
     } else {
-        $response['ack'] = 'No se pudo enviar el email. Intenta más tarde.';
+        $response['ack'] = $mailError ?: 'No se pudo enviar el email. Intenta más tarde.';
     }
 }
 

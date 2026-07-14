@@ -833,29 +833,21 @@ $generos = $generoDAO->getAll();
 
     function agregarAlCarrito() {
         if (libroActualModal) {
-            // Obtener carrito de localStorage (modo invitado)
-            let cart = [];
-            const carritoGuardado = localStorage.getItem('bookstore_cart');
-            if (carritoGuardado) {
-                try {
-                    cart = JSON.parse(carritoGuardado);
-                } catch (e) {
-                    cart = [];
-                }
-            }
-            
-            // Agregar el libro
-            cart.push({ 
-                name: libroActualModal.nombre, 
-                price: libroActualModal.precio 
+            // Usamos la variable global `cart` (declarada arriba), no una copia local,
+            // para que el drawer del carrito y el checkout vean el mismo estado.
+            cart.push({
+                name: libroActualModal.nombre,
+                price: libroActualModal.precio
             });
-            
+            total = cart.reduce((sum, item) => sum + item.price, 0);
+
             // Guardar en localStorage
             localStorage.setItem('bookstore_cart', JSON.stringify(cart));
-            
-            // Actualizar contador
+
+            // Actualizar contador y contenido del drawer
             document.getElementById('cart-count').textContent = cart.length;
-            
+            renderCart();
+
             showToast(`"${libroActualModal.nombre}" agregado al carrito`);
             cerrarModal();
         }
@@ -1110,6 +1102,7 @@ $generos = $generoDAO->getAll();
                 cart = [];
                 total = 0;
                 document.getElementById('cart-count').textContent = '0';
+                renderCart();
                 
                 // Mostrar resumen
                 mostrarResumenCompra(result);
