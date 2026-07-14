@@ -395,6 +395,22 @@ session_start();
             }
         }
 
+        .cart-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 350px;
+            height: 100vh;
+            background: white;
+            z-index: 2000;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            flex-direction: column;
+        }
+        .cart-modal.open {
+            display: flex;
+        }
+
         @media (max-width: 768px) {
             header {
                 padding: 0.8rem 1rem;

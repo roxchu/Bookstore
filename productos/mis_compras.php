@@ -26,7 +26,7 @@ $ventas = $ventaDAO->listarPorUsuario((int) $uid);
 $compras = array_map(function (Venta $v) {
     return [
         'id'     => $v->getIdVenta(),
-        'total'  => $v->getTotal(),
+        'total'  => (float) $v->getTotal(),
         'metodo' => $v->getMetodoPago() ?: 'Efectivo',
         'fecha'  => date('d/m/Y H:i', strtotime($v->getFecha())),
     ];
