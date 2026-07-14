@@ -13,7 +13,8 @@ class GeneroDAO {
     private function hidratar(array $fila): Genero {
         return new Genero(
             (int)   $fila['id_genero'],
-            (string)$fila['nombre_genero']
+            (string)$fila['nombre_genero'],
+            $fila['imagen'] ?? null
         );
     }
 
@@ -49,12 +50,23 @@ class GeneroDAO {
         return null;
     }
 
-    // Crear nuevo género
-    public function crearGenero(string $nombre): bool {
+    // Crear nuevo género (con imagen opcional)
+    public function crearGenero(string $nombre, ?string $imagen = null): bool {
         $stmt = $this->conexion->prepare(
-            "INSERT INTO genero (nombre_genero, activo) VALUES (?, 1)"
+            "INSERT INTO genero (nombre_genero, activo, imagen) VALUES (?, 1, ?)"
         );
-        $stmt->bind_param("s", $nombre);
+        $stmt->bind_param("ss", $nombre, $imagen);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+    }
+
+    // Actualizar solo la imagen de un género
+    public function actualizarImagen(int $idGenero, string $imagen): bool {
+        $stmt = $this->conexion->prepare(
+            "UPDATE genero SET imagen = ? WHERE id_genero = ?"
+        );
+        $stmt->bind_param("si", $imagen, $idGenero);
         $result = $stmt->execute();
         $stmt->close();
         return $result;

@@ -558,12 +558,16 @@ session_start();
                     6 => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6Jt02Bx6Dt3Q-GqrRCdD5Qj3IpfVwWm4p2A3iRU8Kwev3x9EG-bE57D4&s=10"
                 ];
 
-                $stmt = $pdo->query("SELECT id_genero, nombre_genero FROM genero ORDER BY id_genero ASC");
+                $stmt = $pdo->query("SELECT id_genero, nombre_genero, imagen FROM genero WHERE activo = 1 ORDER BY id_genero ASC");
                 
                 while ($genero = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     $id_genero = $genero['id_genero'];
                     $nombre_genero = htmlspecialchars($genero['nombre_genero']);
-                    $img_g = $imagenes_generos[$id_genero] ?? "https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600";
+                    if (!empty($genero['imagen'])) {
+                        $img_g = 'img/' . htmlspecialchars($genero['imagen']);
+                    } else {
+                        $img_g = $imagenes_generos[$id_genero] ?? "https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600";
+                    }
                     ?>
                     
                     <a href="productos/libros.php?genero=<?= $id_genero ?>" class="book-card">

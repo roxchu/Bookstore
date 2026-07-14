@@ -3,6 +3,16 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Convertimos cualquier Warning/Notice de PHP en una excepción real.
+// Sin esto, un Warning (ej: move_uploaded_file() fallando por permisos)
+// se imprime como HTML ANTES del JSON, y el navegador recibe algo como
+// "<br /><b>Warning</b>...{"status":...}" -> JSON.parse() explota con
+// "Unexpected token '<'". Con esto, cualquier problema (incluidos los
+// warnings) termina como un Exception normal que ya capturamos abajo.
+set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+    throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+});
+
 header('Content-Type: application/json; charset=utf-8');
 
 // Ajustamos las rutas subiendo un nivel si este archivo está en la carpeta /productos
@@ -68,7 +78,9 @@ switch ($action) {
                 }
                 $ext = pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION);
                 $nombre_foto = time() . "_" . bin2hex(random_bytes(4)) . "." . $ext;
-                move_uploaded_file($_FILES['imagen']['tmp_name'], $folder . $nombre_foto);
+                if (!move_uploaded_file($_FILES['imagen']['tmp_name'], $folder . $nombre_foto)) {
+                    throw new Exception('No se pudo guardar la imagen. Verificá que la carpeta img/ tenga permisos de escritura.');
+                }
             }
 
             // Creamos el objeto Producto con los datos del formulario (pasando null en imagen2 e imagen3)

@@ -116,9 +116,10 @@
             <table style="width: 100%;">
                 <thead>
                     <tr>
-                        <th style="width: 50%;">Género</th>
-                        <th style="width: 25%; text-align: center;">¿Destacar?</th>
-                        <th style="width: 25%; text-align: center;">Acción</th>
+                        <th style="width: 35%;">Género</th>
+                        <th style="width: 20%; text-align: center;">¿Destacar?</th>
+                        <th style="width: 25%; text-align: center;">Imagen</th>
+                        <th style="width: 20%; text-align: center;">Acción</th>
                     </tr>
                 </thead>
                 <tbody id="generosTableBody">
@@ -137,6 +138,11 @@
     <div class="form-group">
         <label for="nuevoGenero" style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: var(--green-deep);">Nombre del Género</label>
         <input type="text" id="nuevoGenero" placeholder="Ej: Ciencia Ficción" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-family: 'Lato', sans-serif;">
+    </div>
+    <div class="form-group" style="margin-top: 1rem;">
+        <label for="nuevoGeneroImagen" style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: var(--green-deep);">Imagen (opcional)</label>
+        <input type="file" id="nuevoGeneroImagen" accept="image/*" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px;">
+        <small style="color:#888;">Si no subís una imagen, se muestra una por defecto.</small>
     </div>
     <button class="btn-primary" onclick="crearGenero()" style="width: 100%; margin-top: 1rem;">Crear Género</button>
 </div>
@@ -446,6 +452,11 @@
                             <input type="checkbox" name="genero_destacado" value="${g.id_genero}" ${g.destacado == 1 ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;">
                         </td>
                         <td style="text-align: center;">
+                            <img src="${g.imagen ? '../img/' + encodeURIComponent(g.imagen) : '../img/no-book.jpg'}" alt="" style="width:40px; height:40px; object-fit:cover; border-radius:6px; vertical-align:middle; margin-right:0.5rem;" onerror="this.src='../img/no-book.jpg'">
+                            <input type="file" accept="image/*" id="generoImg-${g.id_genero}" style="width:130px; font-size:0.8rem;">
+                            <button type="button" class="btn-primary" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="subirImagenGenero(${g.id_genero})">Subir</button>
+                        </td>
+                        <td style="text-align: center;">
                             <button type="button" class="btn-delete" onclick="deshabilitarGenero(${g.id_genero}, '${escHtml(g.nombre_genero)}')">Deshabilitar</button>
                         </td>
                     </tr>
@@ -453,6 +464,38 @@
             }
         } catch (e) {
             console.error('Error al cargar géneros:', e);
+        }
+    }
+
+    async function subirImagenGenero(id) {
+        const input = document.getElementById('generoImg-' + id);
+        if (!input.files || !input.files[0]) {
+            showToast('Elegí una imagen primero', true);
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('action', 'set_imagen');
+            formData.append('id', id);
+            formData.append('imagen', input.files[0]);
+
+            const res = await fetch('../productos/admin_generos.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                showToast('Imagen actualizada correctamente');
+                loadGenerosDestacados();
+            } else {
+                showToast(data.message || 'Error al subir la imagen', true);
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Error de conexión', true);
         }
     }
 
@@ -659,6 +702,11 @@
             formData.append('action', 'create_genero');
             formData.append('nombre', nombre);
 
+            const imagenInput = document.getElementById('nuevoGeneroImagen');
+            if (imagenInput.files && imagenInput.files[0]) {
+                formData.append('imagen', imagenInput.files[0]);
+            }
+
             const res = await fetch('../productos/admin_generos.php', {
                 method: 'POST',
                 body: formData
@@ -669,6 +717,7 @@
             if (data.status === 'success') {
                 showToast('Género creado correctamente');
                 document.getElementById('nuevoGenero').value = '';
+                imagenInput.value = '';
                 loadGenerosDestacados();
             } else {
                 showToast(data.message || 'Error al crear', true);

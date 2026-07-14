@@ -107,8 +107,8 @@ class ProductoDAO {
             $stock    = $producto->getStock();
             $idGenero = $producto->getIdGenero();
             $imagen   = $producto->getImagen();
-            $imagen2  = $producto->getImagen2() ?? ''; 
-            $imagen3  = $producto->getImagen3()?? '';
+            $imagen2  = $producto->getImagen2();
+            $imagen3  = $producto->getImagen3();
             $stmt->bind_param("sssdiisss", $nombre, $autor, $detalle, $precio, $stock, $idGenero, $imagen, $imagen2, $imagen3);
         } else {
             $stmt = $this->conexion->prepare(
@@ -122,8 +122,8 @@ class ProductoDAO {
             $stock    = $producto->getStock();
             $idGenero = $producto->getIdGenero();
             $imagen   = $producto->getImagen();
-            $imagen2  = $producto->getImagen2() ?? '';
-            $imagen3  = $producto->getImagen3() ?? '';
+            $imagen2  = $producto->getImagen2();
+            $imagen3  = $producto->getImagen3();
             $id       = $producto->getId();
             $stmt->bind_param("sssdiisssi", $nombre, $autor, $detalle, $precio, $stock, $idGenero, $imagen, $imagen2, $imagen3, $id);
         }

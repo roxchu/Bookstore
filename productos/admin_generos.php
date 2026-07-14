@@ -1,11 +1,36 @@
 <?php
 header('Content-Type: application/json');
+
+// Cualquier Warning (ej: move_uploaded_file fallando por permisos) se
+// convierte en una excepción real, así nunca se filtra HTML antes del
+// JSON (mismo fix aplicado en admin_productos.php).
+set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+    throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+});
+
 require_once __DIR__ . '/../models/genero.php';
 require_once __DIR__ . '/../DAO/generoDAO.php';
 require_once __DIR__ . '/../conexion.php';
 
 $conexion = Conexion::conectar();
 $generoDAO = new GeneroDAO($conexion);
+
+// Sube el archivo de imagen (si vino) y devuelve el nombre guardado o null
+function subirImagenGenero(): ?string {
+    if (!isset($_FILES['imagen']) || $_FILES['imagen']['error'] !== UPLOAD_ERR_OK) {
+        return null;
+    }
+    $folder = __DIR__ . '/../img/';
+    if (!is_dir($folder)) {
+        mkdir($folder, 0777, true);
+    }
+    $ext = pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION);
+    $nombreArchivo = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+    if (!move_uploaded_file($_FILES['imagen']['tmp_name'], $folder . $nombreArchivo)) {
+        throw new Exception('No se pudo guardar la imagen. Verificá que la carpeta img/ tenga permisos de escritura.');
+    }
+    return $nombreArchivo;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -19,11 +44,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         try {
-            $result = $generoDAO->crearGenero($nombre);
+            $imagen = subirImagenGenero();
+            $result = $generoDAO->crearGenero($nombre, $imagen);
             if ($result) {
                 echo json_encode(['status' => 'success', 'message' => 'Género creado correctamente']);
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'No se pudo crear el género']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    if ($action === 'set_imagen') {
+        $id_genero = (int)($_POST['id'] ?? 0);
+
+        if (!$id_genero) {
+            echo json_encode(['status' => 'error', 'message' => 'ID de género requerido']);
+            exit;
+        }
+
+        try {
+            $imagen = subirImagenGenero();
+            if ($imagen === null) {
+                echo json_encode(['status' => 'error', 'message' => 'No se recibió ninguna imagen']);
+                exit;
+            }
+            $result = $generoDAO->actualizarImagen($id_genero, $imagen);
+            if ($result) {
+                echo json_encode(['status' => 'success', 'message' => 'Imagen actualizada correctamente']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'No se pudo actualizar la imagen']);
             }
         } catch (Exception $e) {
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
@@ -82,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     if ($action === 'list') {
         try {
-            $stmt = $conexion->query("SELECT id_genero, nombre_genero, destacado FROM genero WHERE activo = 1 ORDER BY nombre_genero ASC");
+            $stmt = $conexion->query("SELECT id_genero, nombre_genero, destacado, imagen FROM genero WHERE activo = 1 ORDER BY nombre_genero ASC");
             $generos = [];
             while ($row = $stmt->fetch_assoc()) {
                 $generos[] = $row;
