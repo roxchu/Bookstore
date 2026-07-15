@@ -205,47 +205,19 @@ session_start();
             transform: translateY(0);
         }
 
-        /* HERO SECTION MÁS PEQUEÑO */
-        .hero-section {
-            background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 100%);
-            padding: 20px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-section::before {
-            content: '📚';
-            position: absolute;
-            font-size: 12rem;
-            opacity: 0.04;
-            top: -2rem;
-            right: -1.5rem;
-        }
-
-        .hero-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: var(--cream);
-            margin-bottom: 0.5rem;
-        }
-
-        .hero-subtitle {
-            font-size: 0.95rem;
-            color: var(--green-light);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .hero-line {
-            width: 50px;
-            height: 3px;
-            background: var(--gold);
-            margin: 1rem auto;
-        }
 
         /* CARRUSEL DE LIBROS */
+
+        .carousel-subbienvenida {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            color: var(--green-deep);
+            text-align: center;
+            font-weight: 700;
+            padding-top: 1rem;
+            margin: 0.2rem 0 0.5rem 0;
+        }
+
         .carousel-section {
             max-width: 1200px;
             margin: 3rem auto;
@@ -256,6 +228,8 @@ session_start();
             position: relative;
             overflow: hidden;
             border-radius: 8px;
+            background: #f8f5ef;
+            border: 3px solid var(--gold);
         }
 
         .carousel-wrapper {
@@ -265,34 +239,34 @@ session_start();
 
         .carousel-slide {
             min-width: 100%;
-            height: auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: white;
-            padding: 2rem;
+            min-height: 455px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            align-items: stretch;
+            padding: 1rem 2rem 2rem 2rem; 
             gap: 2rem;
-            position: relative;
         }
 
         .carousel-book {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-rows: 280px 1fr;
             align-items: center;
-            gap: 1rem;
-            flex: 1;
-            max-width: 250px;
+            justify-items: center;
+            min-width: 0;
         }
 
         .carousel-book img {
-            max-height: 300px;
-            max-width: 100%;
+            width: 200px;
+            height: 280px;
             object-fit: contain;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .carousel-book-info {
+            display: grid;
+            grid-template-rows: 44px 22px 34px 36px;
+            align-items: center;
             text-align: center;
             width: 100%;
         }
@@ -301,20 +275,20 @@ session_start();
             font-family: 'Playfair Display', serif;
             font-size: 1.2rem;
             color: var(--green-deep);
-            margin-bottom: 0.3rem;
+            margin: 0;
         }
 
         .carousel-book-author {
             font-size: 0.85rem;
             color: #666;
-            margin-bottom: 0.5rem;
+            margin: 0;
         }
 
         .carousel-book-price {
             font-size: 1.3rem;
             font-weight: bold;
             color: var(--green-mid);
-            margin-bottom: 0.8rem;
+            margin: 0;
         }
 
         .carousel-book-btn {
@@ -334,13 +308,14 @@ session_start();
         }
 
         .carousel-nav {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
+            position: static;
+            bottom: auto;
+            left: auto;
+            transform: none;
             display: flex;
             gap: 8px;
-            z-index: 10;
+            align-items: center;
+            z-index: auto;
         }
 
     .carousel-dot {
@@ -365,18 +340,20 @@ session_start();
     }
 
     .carousel-btn {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
+        position: static;
+        top: auto;
+        left: auto;
+        right: auto;
+        transform: none;
         background: rgba(0,0,0,0.5);
         color: white;
         border: none;
-        width: 45px;
-        height: 45px;
+        width: 32px;    
+        height: 32px;      
         border-radius: 50%;
         cursor: pointer;
-        font-size: 1.4rem;
-        z-index: 10;
+        font-size: 1.1rem;  
+        z-index: auto;
         transition: background 0.3s;
         display: flex;
         align-items: center;
@@ -389,12 +366,13 @@ session_start();
         background: rgba(0,0,0,0.8);
     }
 
-    .carousel-btn.prev {
-        left: 15px;
-    }
-
-    .carousel-btn.next {
-        right: 15px;
+    .carousel-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        padding: 0.8rem 1rem 1rem;
+        background: #f8f5ef;
     }
 
         /* RESPONSIVE */
@@ -412,7 +390,8 @@ session_start();
                 font-size: 2rem;
             }
             .carousel-slide {
-                flex-wrap: wrap;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 1rem;
                 padding: 1.5rem;
             }
         }
@@ -457,11 +436,11 @@ session_start();
                 margin: 0.8rem auto;
             }
             .carousel-slide {
-                flex-direction: column;
+                grid-template-columns: 1fr;
+                min-height: 0;
                 padding: 1rem;
             }
             .carousel-book {
-                max-width: 100%;
                 width: 100%;
             }
             .carousel-btn {
@@ -521,21 +500,18 @@ session_start();
         </div>
     </header>
 
-    <div class="hero-section">
-        <h1 class="hero-title">Bienvenidos</h1>
-        <div class="hero-line"></div>
-        <p class="hero-subtitle">Descubrí tu próxima historia</p>
-    </div>
-
     <!-- CARRUSEL DE LIBROS DESTACADOS -->
     <div class="carousel-section">
         <div class="carousel-container">
+            <p class="carousel-subbienvenida">Hecha un vistazo a nuestros libros más aclamados!</p>
             <div class="carousel-wrapper" id="carouselWrapper">
                 <!-- Los slides se generan dinámicamente -->
             </div>
+        </div>
+        <div class="carousel-controls">
             <button class="carousel-btn prev" onclick="prevSlide()">❮</button>
-            <button class="carousel-btn next" onclick="nextSlide()">❯</button>
             <div class="carousel-nav" id="carouselNav"></div>
+            <button class="carousel-btn next" onclick="nextSlide()">❯</button>
         </div>
     </div>
 
@@ -824,7 +800,7 @@ session_start();
             }
 
             guardarCarrito();
-            window.location.href = 'productos/libros.php?checkout=1';
+            window.location.href = 'productos/checkout.php';
         }
 
         function showToast(msg) {

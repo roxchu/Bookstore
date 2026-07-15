@@ -1,89 +1,77 @@
 <?php
 session_start();
-
 header('Content-Type: application/json; charset=utf-8');
 
-require_once __DIR__ . '/../models/Venta.php';
-require_once __DIR__ . '/../DAO/VentaDAO.php';
-require_once __DIR__ . '/../DAO/UsuarioDAO.php';
 require_once __DIR__ . '/../conexion.php';
 
+function responder(int $status, array $data): void {
+    http_response_code($status);
+    echo json_encode($data);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    responder(405, ['success' => false, 'error' => 'Método no permitido.']);
+}
+
+if (empty($_SESSION['usuario_id'])) {
+    responder(401, ['success' => false, 'error' => 'Debés iniciar sesión para finalizar la compra.']);
+}
+
+$data = json_decode(file_get_contents('php://input'), true);
+if (!is_array($data) || empty($data['items']) || !is_array($data['items'])) {
+    responder(400, ['success' => false, 'error' => 'El carrito no contiene productos válidos.']);
+}
+
+$metodosValidos = ['transferencia', 'tarjeta', 'efectivo'];
+$metodo = $data['metodo'] ?? '';
+if (!in_array($metodo, $metodosValidos, true)) {
+    responder(400, ['success' => false, 'error' => 'El método de pago no es válido.']);
+}
+
+$items = [];
+$subtotal = 0.0;
+foreach ($data['items'] as $item) {
+    $nombre = trim((string)($item['name'] ?? ''));
+    $precio = filter_var($item['price'] ?? null, FILTER_VALIDATE_FLOAT);
+    if ($nombre === '' || $precio === false || $precio <= 0) {
+        responder(400, ['success' => false, 'error' => 'Hay un producto inválido en el carrito.']);
+    }
+    $items[] = ['nombre' => $nombre, 'precio' => (float)$precio];
+    $subtotal += (float)$precio;
+}
+
+$descuento = $metodo === 'transferencia' ? round($subtotal * 0.10, 2) : 0.0;
+$total = round($subtotal - $descuento, 2);
+$conexion = Conexion::conectar();
+
 try {
-    // 1. Validar sesión
-    $uid = $_SESSION['usuario_id'] ?? null;
-    if (!$uid) {
-        http_response_code(401);
-        echo json_encode(['success' => false, 'error' => 'No hay sesión de usuario activa.']);
-        exit;
+    $conexion->begin_transaction();
+
+    $venta = $conexion->prepare('INSERT INTO ventas (id_usuario, total, metodo_pago) VALUES (?, ?, ?)');
+    $usuarioId = (int)$_SESSION['usuario_id'];
+    $venta->bind_param('ids', $usuarioId, $total, $metodo);
+    if (!$venta->execute()) {
+        throw new RuntimeException('No se pudo registrar la venta.');
     }
+    $idVenta = $conexion->insert_id;
+    $venta->close();
 
-    // 2. Obtener datos del POST
-    $input = file_get_contents('php://input');
-    $data = json_decode($input, true);
-
-    if (!$data) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'JSON inválido']);
-        exit;
+    // La estructura real de detalle_ventas usa nombre_producto y precio.
+    $detalle = $conexion->prepare('INSERT INTO detalle_ventas (id_venta, nombre_producto, precio) VALUES (?, ?, ?)');
+    foreach ($items as $item) {
+        $detalle->bind_param('isd', $idVenta, $item['nombre'], $item['precio']);
+        if (!$detalle->execute()) {
+            throw new RuntimeException('No se pudo guardar el detalle de la venta.');
+        }
     }
+    $detalle->close();
+    $conexion->commit();
 
-    $total     = isset($data['total']) ? floatval($data['total']) : 0;
-    $descuento = isset($data['descuento']) ? floatval($data['descuento']) : 0;
-    $neto      = isset($data['neto']) ? floatval($data['neto']) : $total;
-    $metodo    = $data['metodo'] ?? 'Efectivo';
-    $items     = $data['items'] ?? [];
-    $cliente   = $data['cliente'] ?? [];
-
-    // 3. Validaciones
-    if ($total <= 0) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'Total debe ser mayor a 0']);
-        exit;
-    }
-
-    if (empty($items)) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'Carrito vacío']);
-        exit;
-    }
-
-    // 4. Conectar a la BD
-    $conexion = Conexion::conectar();
-    if (!$conexion) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Error de conexión a BD']);
-        exit;
-    }
-
-    // 5. Crear y guardar venta (se cobra el neto, ya con el descuento aplicado)
-    $venta = new Venta(0, (int) $uid, $neto, '', $metodo);
-    $ventaDAO = new VentaDAO($conexion);
-    $id_factura = $ventaDAO->registrarVenta($venta);
-
-    if ($id_factura <= 0) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'No se pudo registrar la venta']);
-        exit;
-    }
-
-    // 6. Respuesta exitosa — misma forma que espera mostrarResumenCompra() en libros.php
-    echo json_encode([
-        'success'    => true,
-        'id_factura' => $id_factura,
-        'cliente'    => $cliente,
-        'metodo'     => $metodo,
-        'total'      => $total,
-        'descuento'  => $descuento,
-        'neto'       => $neto,
-        'fecha'      => date('d/m/Y H:i')
-    ]);
-
-} catch (Exception $e) {
-    http_response_code(500);
-    error_log("Error en guardar_venta.php: " . $e->getMessage());
-    echo json_encode([
-        'success' => false,
-        'error' => 'Error del servidor: ' . $e->getMessage()
-    ]);
+    responder(201, ['success' => true, 'id_factura' => $idVenta, 'total' => $subtotal, 'descuento' => $descuento, 'neto' => $total]);
+} catch (Throwable $e) {
+    $conexion->rollback();
+    error_log('guardar_venta.php: ' . $e->getMessage());
+    responder(500, ['success' => false, 'error' => 'No se pudo completar la compra. Intentá nuevamente.']);
 }
 ?>
