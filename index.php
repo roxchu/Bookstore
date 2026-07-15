@@ -208,7 +208,7 @@ session_start();
         /* HERO SECTION MÁS PEQUEÑO */
         .hero-section {
             background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 100%);
-            padding: 2rem 3rem;
+            padding: 20px;
             text-align: center;
             position: relative;
             overflow: hidden;
