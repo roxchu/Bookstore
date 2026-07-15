@@ -254,12 +254,12 @@
             const nombre = escHtml(p.nombre ?? '—');
             const detalle = escHtml((p.detalle ?? '').substring(0, 40)) + ((p.detalle ?? '').length > 40 ? '...' : '');
 
-            const imgPath = p.imagen ? '../img/' + encodeURIComponent(p.imagen) : '../img/no-book.jpg';
+            const imgPath = p.imagen ? '../img/' + encodeURIComponent(p.imagen) : placeholderImage('Sin imagen');
             return `
                 <tr>
                     <td>
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <img src="${imgPath}" class="book-thumbnail" alt="${nombre}">
+                            <img src="${imgPath}" class="book-thumbnail" alt="${nombre}" onerror="this.onerror=null;this.src=placeholderImage('Sin imagen')">
                             <strong>${nombre}</strong>
                         </div>
                     </td>
@@ -433,6 +433,12 @@
         return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    // Placeholder embebido: no depende de un archivo no-book.jpg en el servidor.
+    function placeholderImage(text = 'Sin imagen') {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="220"><rect width="100%" height="100%" fill="#d8f3dc"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" fill="#1a3d2b" font-family="Arial" font-size="16">${text}</text></svg>`;
+        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    }
+
     document.getElementById('formModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
     document.getElementById('confirmModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeConfirm(); });
 
@@ -452,7 +458,7 @@
                             <input type="checkbox" name="genero_destacado" value="${g.id_genero}" ${g.destacado == 1 ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;">
                         </td>
                         <td style="text-align: center;">
-                            <img src="${g.imagen ? '../img/' + encodeURIComponent(g.imagen) : '../img/no-book.jpg'}" alt="" style="width:40px; height:40px; object-fit:cover; border-radius:6px; vertical-align:middle; margin-right:0.5rem;" onerror="this.src='../img/no-book.jpg'">
+                            <img src="${g.imagen ? '../img/' + encodeURIComponent(g.imagen) : placeholderImage('Sin imagen')}" alt="" style="width:40px; height:40px; object-fit:cover; border-radius:6px; vertical-align:middle; margin-right:0.5rem;" onerror="this.onerror=null;this.src=placeholderImage('Sin imagen')">
                             <input type="file" accept="image/*" id="generoImg-${g.id_genero}" style="width:130px; font-size:0.8rem;">
                             <button type="button" class="btn-primary" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="subirImagenGenero(${g.id_genero})">Subir</button>
                         </td>

@@ -20,12 +20,25 @@ function subirImagenGenero(): ?string {
     if (!isset($_FILES['imagen']) || $_FILES['imagen']['error'] !== UPLOAD_ERR_OK) {
         return null;
     }
+
     $folder = __DIR__ . '/../img/';
     if (!is_dir($folder)) {
-        mkdir($folder, 0777, true);
+        if (!mkdir($folder, 0775, true) && !is_dir($folder)) {
+            throw new Exception('No se pudo crear la carpeta img/.');
+        }
     }
-    $ext = pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION);
-    $nombreArchivo = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+
+    if (!is_writable($folder)) {
+        throw new Exception('La carpeta img/ no tiene permiso de escritura para Apache. Revisá los permisos del servidor.');
+    }
+
+    $tiposPermitidos = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+    $mime = mime_content_type($_FILES['imagen']['tmp_name']);
+    if (!isset($tiposPermitidos[$mime])) {
+        throw new Exception('La imagen debe ser JPG, PNG o WEBP.');
+    }
+
+    $nombreArchivo = time() . '_' . bin2hex(random_bytes(4)) . '.' . $tiposPermitidos[$mime];
     if (!move_uploaded_file($_FILES['imagen']['tmp_name'], $folder . $nombreArchivo)) {
         throw new Exception('No se pudo guardar la imagen. Verificá que la carpeta img/ tenga permisos de escritura.');
     }
