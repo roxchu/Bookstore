@@ -98,8 +98,11 @@ class ProductoDAO {
         if ($producto->getId() === 0) {
             $stmt = $this->conexion->prepare(
                 "INSERT INTO producto (nombre, autor, detalle, precio, stock, id_genero, imagen, imagen2, imagen3)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0)"
             );
+            if (!$stmt) {
+                throw new RuntimeException('No se pudo preparar el alta de producto: ' . $this->conexion->error);
+            }
             $nombre   = $producto->getNombre();
             $autor    = $producto->getAutor();
             $detalle  = $producto->getDetalle();
@@ -107,14 +110,17 @@ class ProductoDAO {
             $stock    = $producto->getStock();
             $idGenero = $producto->getIdGenero();
             $imagen   = $producto->getImagen();
-            $imagen2  = $producto->getImagen2();
-            $imagen3  = $producto->getImagen3();
-            $stmt->bind_param("sssdiisss", $nombre, $autor, $detalle, $precio, $stock, $idGenero, $imagen, $imagen2, $imagen3);
+            $stmt->bind_param("sssdiis", $nombre, $autor, $detalle, $precio, $stock, $idGenero, $imagen);
         } else {
+            // imagen2 e imagen3 son INT NOT NULL en la base y este formulario no
+            // los administra. No se deben sobrescribir con null al editar.
             $stmt = $this->conexion->prepare(
-                "UPDATE producto SET nombre=?, autor=?, detalle=?, precio=?, stock=?, id_genero=?, imagen=?, imagen2=?, imagen3=?
+                "UPDATE producto SET nombre=?, autor=?, detalle=?, precio=?, stock=?, id_genero=?, imagen=?
                  WHERE id=?"
             );
+            if (!$stmt) {
+                throw new RuntimeException('No se pudo preparar la actualización de producto: ' . $this->conexion->error);
+            }
             $nombre   = $producto->getNombre();
             $autor    = $producto->getAutor();
             $detalle  = $producto->getDetalle();
@@ -122,15 +128,18 @@ class ProductoDAO {
             $stock    = $producto->getStock();
             $idGenero = $producto->getIdGenero();
             $imagen   = $producto->getImagen();
-            $imagen2  = $producto->getImagen2();
-            $imagen3  = $producto->getImagen3();
             $id       = $producto->getId();
-            $stmt->bind_param("sssdiisssi", $nombre, $autor, $detalle, $precio, $stock, $idGenero, $imagen, $imagen2, $imagen3, $id);
+            $stmt->bind_param("sssdiisi", $nombre, $autor, $detalle, $precio, $stock, $idGenero, $imagen, $id);
         }
 
         $resultado = $stmt->execute();
+        if (!$resultado) {
+            $error = $stmt->error;
+            $stmt->close();
+            throw new RuntimeException('No se pudo guardar el producto: ' . $error);
+        }
         $stmt->close();
-        return $resultado;
+        return true;
     }
 
     // elimina por id

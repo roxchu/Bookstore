@@ -1,7 +1,7 @@
 <?php
 // Habilitamos errores temporalmente por si falta algún include
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', '0');
 
 // Convertimos cualquier Warning/Notice de PHP en una excepción real.
 // Sin esto, un Warning (ej: move_uploaded_file() fallando por permisos)
@@ -59,15 +59,20 @@ switch ($action) {
             $precio    = (float)($_POST['precio'] ?? 0);
             $stock     = (int)($_POST['stock'] ?? 0);
             $id_genero = (int)($_POST['id_genero'] ?? 0);
+
+            if ($nombre === '' || $autor === '' || $precio <= 0 || $stock < 0 || $id_genero <= 0) {
+                throw new InvalidArgumentException('Completá nombre, autor, precio, stock y género con valores válidos.');
+            }
             
             $nombre_foto = null;
 
             // Si estamos editando, recuperamos la imagen actual por si no se sube una nueva
             if ($id > 0) {
                 $prodActual = $productoDAO->getById($id);
-                if ($prodActual) {
-                    $nombre_foto = $prodActual->getImagen();
+                if (!$prodActual) {
+                    throw new RuntimeException('El producto que querés editar no existe.');
                 }
+                $nombre_foto = $prodActual->getImagen();
             }
 
             // --- Lógica de Imagen ---
@@ -92,7 +97,8 @@ switch ($action) {
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'No se pudo guardar en la base de datos.']);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
+            error_log('admin_productos.php save: ' . $e->getMessage());
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
         break;
